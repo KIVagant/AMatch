@@ -51,7 +51,7 @@
 	 * </code>
 	 *
 	 * @package AMatch
-	 * @author KIVagant. Special thank's to Andrew Tereschenko, Andrew Lugovoi for ideas.
+	 * @author KIVagant. Special thanks to Andrew Tereschenko, Andrew Lugovoi for ideas.
 	 * @see AMatchTest
 	 *
 	 */
