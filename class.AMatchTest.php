@@ -1,0 +1,501 @@
+<?php
+	require_once('class.AMatch.php');
+
+	/**
+	 * PHPUnit Test Class for AMatch
+	 * @package AMatch
+	 * @author KIVagant
+	 * @see AMatch
+	 */
+	class AMatchTest extends PHPUnit_Framework_TestCase
+	{
+
+		/**
+		 * Набор параметров, отправляемых на анализ
+		 * @var array
+		 */
+		protected $_actual_params = array(
+			'doc_id' => 133,
+			'subject_id' => '64',
+			'parent_id' => 32,
+			'title' => 'Actual document',
+			'empty_key' => false,
+			'empty_key2' => false,
+			'data' => array(
+				'key1' => 'data1',
+				'key2' => 'data2',
+				'key3' => 'data3',
+				'key4' => false,
+			),
+		);
+		
+		public function testNotArray()
+		{
+			$result = AMatch::runMatch('bad input data')->doc_id('', 'fukaka');
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals(array(
+			'runMatch' => AMatch::MATCHING_DATA_NOT_ARRAY
+			), $result->matchComments());
+		}
+
+		public function testBadCondition()
+		{
+			$result = AMatch::runMatch($this->_actual_params)->doc_id('', 'fukaka');
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals(array(
+				'doc_id' => AMatch::CONDITION_IS_UNKNOWN
+			), $result->matchComments());
+		}
+
+		public function testBadKeyNotExists()
+		{
+			$result = AMatch::runMatch($this->_actual_params)->bad_key();
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals(array(
+				'bad_key' => AMatch::KEY_NOT_EXISTS
+			),
+				$result->matchComments());
+		}
+
+		public function testKeyExists()
+		{
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->doc_id();
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals(array(
+				'doc_id' => AMatch::KEY_EXISTS
+			), $result->matchComments());
+		}
+
+		public function testLastKeyNotExists()
+		{
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->doc_id()->parent_id()->bad_key()
+				;
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_EXISTS,
+				'parent_id' => AMatch::KEY_EXISTS,
+				'bad_key' => AMatch::KEY_NOT_EXISTS
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		public function testValidAndNotValidCondition()
+		{
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->doc_id(133)->subject_id(20);
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_CONDITION_VALID,
+				'subject_id' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->data($this->_actual_params['data']);
+			$expected_ar = array(
+				'data' => AMatch::KEY_CONDITION_VALID,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params)->data(array(
+				1,
+				2
+			))
+				;
+			$expected_ar = array(
+				'data' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		public function testFullyValidation()
+		{
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->doc_id(133, '===')->subject_id(64,
+				'===');
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_VALID_FULLY,
+				'subject_id' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->data($this->_actual_params['data'], '===')
+				;
+			$expected_ar = array(
+				'data' => AMatch::KEY_VALID_FULLY,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		public function testLargerAndSmaller()
+		{
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->doc_id(120, '<')->subject_id(80,
+				'>');
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_CONDITION_VALID,
+				'subject_id' => AMatch::KEY_CONDITION_VALID,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		public function testSmallerOrEqual()
+		{
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->doc_id(133, '=')->subject_id(64,
+				'<=')->parent_id(32, '>=');
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_CONDITION_VALID,
+				'subject_id' => AMatch::KEY_CONDITION_VALID,
+				'parent_id' => AMatch::KEY_CONDITION_VALID,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		public function testTypesValid()
+		{
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->doc_id(false, 'integer')->subject_id(false,
+				'string')->parent_id(false, 'integer')->title(false, 'string')->data(false, 'is_array')
+				;
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_TYPE_VALID,
+				'subject_id' => AMatch::KEY_TYPE_VALID,
+				'parent_id' => AMatch::KEY_TYPE_VALID,
+				'title' => AMatch::KEY_TYPE_VALID,
+				'data' => AMatch::KEY_TYPE_VALID,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		public function testTypesNotValid()
+		{
+			$result = AMatch::runMatch($this->_actual_params)->doc_id(false, 'string');
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_TYPE_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params)->title(false, 'array');
+			$expected_ar = array(
+				'title' => AMatch::KEY_TYPE_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params)->data(false, 'object');
+			$expected_ar = array(
+				'data' => AMatch::KEY_TYPE_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		public function testInArrayAndKeyExists()
+		{
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->data('data3', 'in_array');
+			$expected_ar = array(
+				'data' => AMatch::KEY_CONDITION_VALID,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->data('key2', 'key_exists');
+			$expected_ar = array(
+				'data' => AMatch::KEY_CONDITION_VALID,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+			
+			//
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->doc_id(array(132, 133, 134), 'in_expected_array');
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_CONDITION_VALID,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		public function testNotInArrayAndKeyNotExists()
+		{
+			$result = AMatch::runMatch($this->_actual_params)->data('data16', 'in_array');
+			$expected_ar = array(
+				'data' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params)->data('key7', 'key_exists');
+			$expected_ar = array(
+				'data' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+			
+			//
+			$result = AMatch::runMatch($this->_actual_params)->doc_id(array(10, 11, 1000), 'in_expected_array');
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+		public function testActualAndExpectedNotIsArrays()
+		{
+			$result = AMatch::runMatch($this->_actual_params)->doc_id(false, 'in_array');
+			$expected_ar = array(
+				'doc_id' => AMatch::ACTUAL_NOT_IS_ARRAY,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params)->doc_id(false, 'in_expected_array');
+			$expected_ar = array(
+				'doc_id' => AMatch::EXPECTED_NOT_IS_ARRAY,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+		public function testInstanceOf()
+		{
+			$actual_obj = new AMatch(array());
+			$result = AMatch::runMatch(array('my_obj' => $actual_obj), AMatch::FLAG_SHOW_GOOD_COMMENTS)->my_obj('AMatch', 'instanceof');
+			$expected_ar = array(
+				'my_obj' => AMatch::KEY_CONDITION_VALID,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+			//
+			$result = AMatch::runMatch($this->_actual_params)->doc_id('AMatch', 'instanceof');
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+			unset($actual_obj);
+		}
+
+		public function testOppositeConditions()
+		{
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)
+			->doc_id(24, '!=')
+			->subject_id(array(65, 33), '!in_expected_array')
+			->parent_id(1, '!is_string')
+			->empty_key(null, '!')
+			->data('key9', '!key_exists')
+			;
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_CONDITION_VALID,
+				'subject_id' => AMatch::KEY_CONDITION_VALID,
+				'parent_id' => AMatch::KEY_TYPE_VALID,
+				'empty_key' => AMatch::KEY_VALID_FULLY,
+				'data' => AMatch::KEY_CONDITION_VALID,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)
+			->doc_id(133, '!>')
+			->empty_key('', '!is_float')
+			->data('data2', '!in_array')
+			;
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_CONDITION_VALID,
+				'empty_key' => AMatch::KEY_TYPE_VALID,
+				'data' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params)
+			->doc_id(133, '!<=')
+			;
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params)
+			->data('key3', '!key_exists')
+			;
+			$expected_ar = array(
+				'data' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		public function testTrueFalseValidInvalid()
+		{
+			// проверки на справедливые условия:
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)
+			->doc_id(1 > 0, 'valid')
+			->doc_id(1 > 0, 'true')
+			->doc_id(1 > 0, true)
+			->doc_id(1 == 0, 'invalid')
+			->doc_id(1 == 0, 'false')
+			->doc_id(1 == 0, false)
+			->doc_id(AMatch::CURRENT, 'valid') // значение doc_id == true
+			->doc_id(AMatch::CURRENT, 'true')
+			->doc_id(AMatch::CURRENT, true)
+			->empty_key(AMatch::CURRENT, 'invalid') // значение empty_key == false
+			->empty_key(AMatch::CURRENT, 'false')
+			->empty_key(AMatch::CURRENT, false)
+			;
+
+			$expected_ar = array(
+				'doc_id' => AMatch::KEY_CONDITION_VALID,
+				'empty_key' => AMatch::KEY_CONDITION_VALID,
+			);
+
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			// ложные утверждения:
+			$result = AMatch::runMatch($this->_actual_params)
+			->parent_id(AMatch::CURRENT, false)
+			;
+
+			$expected_ar = array(
+				'parent_id' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params)
+			->empty_key(AMatch::CURRENT, true)
+			;
+
+			$expected_ar = array(
+			'empty_key' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params)
+			->empty_key(0, true)
+			;
+
+			$expected_ar = array(
+			'empty_key' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params)
+			->empty_key(1, false)
+			;
+
+			$expected_ar = array(
+			'empty_key' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		/**
+		 * Проверка требования жесткой структуры (отсутствие недопустимых параметров)
+		 */
+		public function testStrictStructure()
+		{
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_STRICT_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS)
+			->subject_id(64, '>=')
+			->empty_key(AMatch::OPTIONAL, false)
+			->bad_key(AMatch::OPTIONAL)
+			;
+
+			$expected_ar = array(
+			'subject_id' => AMatch::KEY_CONDITION_VALID,
+			'empty_key' => AMatch::KEY_CONDITION_VALID,
+			'bad_key' => AMatch::KEY_NOT_EXISTS_OPTIONAL,
+			'stopMatch' => AMatch::UNKNOWN_PARAMETERS_LIST,
+			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,parent_id,title,empty_key2,data',
+			);
+
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			$result = AMatch::runMatch(array('a' => 1, 'b' => null), AMatch::FLAG_STRICT_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS)
+			->a(true)
+			->b(false)
+			;
+			
+			$expected_ar = array(
+			'a' => AMatch::KEY_CONDITION_VALID,
+			'b' => AMatch::KEY_CONDITION_VALID,
+			'stopMatch' => AMatch::ALL_PARAMETERS_CHECKED,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		public function testCombineFlags()
+		{
+			$flags = AMatch::FLAG_STRICT_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
+			$result = AMatch::runMatch($this->_actual_params, $flags)
+			->bad_key(AMatch::OPTIONAL) // true Опциональный, отсутствующий
+			->missed_key('', 'is_array') // false Обязательный, отсутствующий
+			->empty_key(true) // false Обязательный, не фальш
+			->data(AMatch::OPTIONAL) // Необязательный параметр
+			->data('key2', 'key_exists') // true Существование ключа
+			->data('key1', '!key_exists') // false Требование отсутствие ключа
+			->data('key15', 'key_exists') // false Существование ключа
+			->parent_id('', 'is_float') // false Требуется float
+			;
+			
+			$expected_ar = array(
+			'bad_key' => AMatch::KEY_NOT_EXISTS_OPTIONAL,
+			'missed_key' => AMatch::KEY_NOT_EXISTS,
+			'empty_key' => AMatch::KEY_CONDITION_NOT_VALID,
+			'data' => AMatch::KEY_CONDITION_NOT_VALID,
+			'parent_id' => AMatch::KEY_TYPE_NOT_VALID,
+			'stopMatch' => AMatch::UNKNOWN_PARAMETERS_LIST,
+			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,subject_id,title,empty_key2',
+			);
+			
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+
+		public function _callbackMethod($sub_ar)
+		{
+			return AMatch::runMatch($sub_ar)->key1()->key2()->key15(AMatch::OPTIONAL)->stopMatch();
+		}
+
+		public function testCallback()
+		{
+			$flags = AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
+			$result = AMatch::runMatch($this->_actual_params, $flags)
+			->data(array($this, '_callbackMethod'), 'callback') // true
+			->subject_id(array($this, '_callbackMethod'), 'callback'); // false
+
+			$expected_ar = array(
+			'data' => AMatch::KEY_CONDITION_VALID,
+			'subject_id' => AMatch::KEY_CONDITION_NOT_VALID,
+			);
+
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+		}
+	}
