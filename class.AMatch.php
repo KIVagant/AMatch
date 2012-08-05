@@ -526,7 +526,7 @@
 					break;
 				case 'invalid':
 				case 'false':
-					$this->_conditionMsg($expected == false);;
+					$this->_conditionMsg($expected == false);
 					break;
 				case 'callback':
 					if (is_callable($expected)) {
