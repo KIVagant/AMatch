@@ -77,9 +77,12 @@
 		const CALLBACK_NOT_VALID = 'Callable method return bad result';
 		const MATCHING_DATA_NOT_ARRAY = 'Incoming data is not an array';
 		const _UNKNOWN_PARAMETERS_LIST = 'Unknown parameters:';
+		const OPTIONAL_SKIPPED = 'Optional parameter, skipped bad condition result';
 
 		/**
-		 * Ожидаемое значение, означающее, что проверяемый параметр не обязателен (и все условия для него не обязательны, если он отсутствует)
+		 * Ожидаемое значение, означающее, что проверяемый параметр не обязателен
+		 * (и все условия для него не обязательны, если он отсутствует)
+		 * Неудовлетворительная валидация будет пропускаться
 		 * @var string
 		 */
 		const OPTIONAL = '->optional';
@@ -168,6 +171,12 @@
 		protected $_comment_ar = array();
 
 		/**
+		 * Условия, выполнявшиеся на момент комментария
+		 * @var array
+		 */
+		protected $_comment_conditions_ar = array();
+
+		/**
 		 * Обратное условие
 		 * @var bool
 		 */
@@ -227,8 +236,9 @@
 		/**
 		 * Установить успешный результат условия
 		 * @param string $comment Комментарий к хорошему результату
+		 * @param string $comment Условие на момент комментария к хорошему результату
 		 */
-		protected function _setTrueResult($comment)
+		protected function _setTrueResult($comment, $comment_conditions = null)
 		{
 			// Результат правдивый только если ранее не был установлен в другое значение
 			$this->_result = is_null($this->_result) ? true : $this->_result;
@@ -239,17 +249,37 @@
 				$this->_comment_ar[$this->_param_key] = empty($this->_comment_ar[$this->_param_key])
 					? $comment
 					: $this->_comment_ar[$this->_param_key];
+				$this->_comment_conditions_ar[$this->_param_key] = empty($this->_comment_conditions_ar[$this->_param_key])
+					? (
+						$comment_conditions
+							? $comment_conditions
+							: $this->_conditions_ar
+					) : $this->_comment_conditions_ar[$this->_param_key];
 			}
 		}
 
 		/**
-		 * Установить безуспешный результат условия
+		 * Установить безуспешный результат условия (или успешный, если это опциональный параметр)
 		 * @param string $comment Комментарий к ошибке сопоставления
+		 * * @param string $comment Условие на момент комментария к ошибке сопоставления
 		 */
-		protected function _setFalseResult($comment)
+		protected function _setFalseResult($comment, $comment_conditions = null)
 		{
-			$this->_result = false;
-			$this->_comment_ar[$this->_param_key] = $comment; // Перебиваем ранние комментарии
+			if (isset($this->_params_keys_list_optional[$this->_param_key])) {
+				$this->_result = true;
+				if ($this->_haveFlag(self::FLAG_SHOW_GOOD_COMMENTS)) {
+					$this->_comment_ar[$this->_param_key] = self::OPTIONAL_SKIPPED; // Перебиваем ранние комментарии
+					$this->_comment_conditions_ar[$this->_param_key] = $comment_conditions
+						? $comment_conditions
+						: $this->_conditions_ar; // Перебиваем ранние условия для комментариев
+				}
+			} else {
+				$this->_result = false;
+				$this->_comment_ar[$this->_param_key] = $comment; // Перебиваем ранние комментарии
+				$this->_comment_conditions_ar[$this->_param_key] = $comment_conditions
+					? $comment_conditions
+					: $this->_conditions_ar; // Перебиваем ранние условия для комментариев
+			}
 		}
 
 		/**
@@ -337,16 +367,17 @@
 		 * Сообщить о результате сопоставления
 		 * @param bool $bool успех/неуспех
 		 * @param bool $replace_comment Собственный комментарий (из callback-методов, например)
+		 * @param bool $replace_comment_conditions Собственные условия к комментариям (из callback-методов, например)
 		 */
-		protected function _conditionMsg($bool, $replace_comment = null)
+		protected function _conditionMsg($bool, $replace_comment = null, $replace_comment_conditions = null)
 		{
 			$bool = ($this->_opposite) ? !$bool : $bool;
 			if ($bool) {
 				$comment = $replace_comment ? $replace_comment : self::KEY_CONDITION_VALID;
-				$this->_setTrueResult($comment);
+				$this->_setTrueResult($comment, $replace_comment_conditions);
 			} else {
 				$comment = $replace_comment ? $replace_comment : self::KEY_CONDITION_NOT_VALID;
-				$this->_setFalseResult($comment);
+				$this->_setFalseResult($comment, $replace_comment_conditions);
 			}
 		}
 
@@ -500,9 +531,13 @@
 				case 'callback':
 					if (is_callable($expected)) {
 						$callback_result = call_user_func($expected, $actual);
-						if (is_array($callback_result) && count($callback_result) <= 2) { // (bool, comments)
+						if (is_array($callback_result) && count($callback_result) <= 3) { // (bool, comments, comment_conditions)
 							if (isset($callback_result[1]) && is_array($callback_result[1])) {
-								$this->_conditionMsg($callback_result[0], $callback_result[1]);
+								if (isset($callback_result[2]) && is_array($callback_result[2])) {
+									$this->_conditionMsg($callback_result[0], $callback_result[1], $callback_result[2]);
+								} else {
+									$this->_conditionMsg($callback_result[0], $callback_result[1]);
+								}
 							} else {
 								$this->_conditionMsg($callback_result[0]);
 							}
@@ -573,7 +608,7 @@
 		 */
 		public function stopMatch()
 		{
-
+			$this->_conditions_ar = array();
 			// Проверка на ограниченность структуры
 			if (
 				($this->_result === true || $this->_haveFlag(self::FLAG_DONT_STOP_MATCHING))
@@ -604,6 +639,15 @@
 		{
 		
 			return $this->_comment_ar;
+		}
+
+		/**
+		 * Вернуть условия, к которым применены соответствующие комментарии
+		 */
+		public function matchCommentsConditions()
+		{
+
+			return $this->_comment_conditions_ar;
 		}
 
 		/**

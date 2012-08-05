@@ -455,6 +455,7 @@
 			$flags = AMatch::FLAG_STRICT_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
 			$result = AMatch::runMatch($this->_actual_params, $flags)
 			->bad_key(AMatch::OPTIONAL) // true Опциональный, отсутствующий
+			->bad_key('14', '<') // Если есть, то более 14
 			->missed_key('', 'is_array') // false Обязательный, отсутствующий
 			->empty_key(true) // false Обязательный, не фальш
 			->data(AMatch::OPTIONAL) // Необязательный параметр
@@ -465,7 +466,7 @@
 			;
 			
 			$expected_ar = array(
-			'bad_key' => AMatch::KEY_NOT_EXISTS_OPTIONAL,
+			'bad_key' => AMatch::OPTIONAL_SKIPPED,
 			'missed_key' => AMatch::KEY_NOT_EXISTS,
 			'empty_key' => AMatch::KEY_CONDITION_NOT_VALID,
 			'data' => AMatch::KEY_CONDITION_NOT_VALID,
@@ -473,9 +474,20 @@
 			'stopMatch' => AMatch::UNKNOWN_PARAMETERS_LIST,
 			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,subject_id,title,empty_key2',
 			);
-			
+
 			$this->assertFalse($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchComments());
+
+			$expected_conditions_ar = array(
+				'bad_key' => array('14', '<'),
+				'missed_key' => array('', 'is_array'),
+				'empty_key' => array(true),
+				'data' => array('key15', 'key_exists'),
+				'parent_id' => array('', 'is_float'),
+				'stopMatch' => array(),
+				AMatch::_UNKNOWN_PARAMETERS_LIST => array() 
+			);
+			$this->assertEquals($expected_conditions_ar, $result->matchCommentsConditions());
 		}
 		/**
 		 * Простой каллбек со статусом bool
@@ -496,10 +508,10 @@
 			$flags = AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
 			$result = AMatch::runMatch($sub_ar, $flags)->key1()->key2()->key15(AMatch::OPTIONAL);
 
-			return array($result->stopMatch(), $result->matchComments());	
+			return array($result->stopMatch(), $result->matchComments(), $result->matchCommentsConditions());
 		}
 
-		public function testCallback()
+		public function testCallbackSimple()
 		{
 			$flags = AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
 			$result = AMatch::runMatch($this->_actual_params, $flags)
@@ -513,27 +525,46 @@
 
 			$this->assertFalse($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchComments());
-			
+		}
+	
+		public function testCallbackExtended()
+		{
+			$flags = AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
 			// Каллбек с собственными параметрами
 			$result = AMatch::runMatch($this->_actual_params, $flags)
 			->data(array($this, '_callbackMethodExtended'), 'callback') // true
 			->subject_id(array($this, '_callbackMethodExtended'), 'callback'); // false
 
-			$expected_ar = array (
-				'data' => array (
+			$expected_ar = array(
+				'data' => array(
 						'key1' => AMatch::KEY_EXISTS,
 						'key2' => AMatch::KEY_EXISTS,
 						'key15' => AMatch::KEY_NOT_EXISTS_OPTIONAL, 
 				),
-				'subject_id' => array (
+				'subject_id' => array(
 						'runMatch' => AMatch::MATCHING_DATA_NOT_ARRAY,
 						'key1' => AMatch::KEY_NOT_EXISTS,
 						'key2' => AMatch::KEY_NOT_EXISTS,
 						'key15' => AMatch::KEY_NOT_EXISTS_OPTIONAL, 
-				) 
+				)
 			);
 			
 			$this->assertFalse($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchComments());
+
+			$expected_conditions_ar = array(
+				'data' => array(
+						'key1' => array(),
+						'key2' => array(),
+						'key15' => array(AMatch::OPTIONAL)
+				),
+				'subject_id' => array(
+						'runMatch' => array(),
+						'key1' => array(),
+						'key2' => array(),
+						'key15' => array(AMatch::OPTIONAL)
+				)
+			);
+			$this->assertEquals($expected_conditions_ar, $result->matchCommentsConditions());
 		}
 	}
