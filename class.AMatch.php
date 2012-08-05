@@ -74,6 +74,7 @@
 		const UNKNOWN_PARAMETERS_LIST = 'Unknown parameters in the input data';
 		const ACTUAL_NOT_IS_ARRAY = 'Actual not is array';
 		const CALLBACK_NOT_CALLABLE = 'Expected value not is callable';
+		const CALLBACK_NOT_VALID = 'Callable method return bad result';
 		const MATCHING_DATA_NOT_ARRAY = 'Incoming data is not an array';
 		const _UNKNOWN_PARAMETERS_LIST = 'Unknown parameters:';
 
@@ -181,10 +182,12 @@
 		public function __construct($actual_ar = array(), $flags = self::NO_FLAGS)
 		{
 			$this->_flags = $flags;
-			$this->_actual_ar = $actual_ar;
 			if (!is_array($actual_ar)) {
 				$this->_param_key = 'runMatch';
 				$this->_setFalseResult(self::MATCHING_DATA_NOT_ARRAY);
+				$this->_actual_ar = array();
+			} else {
+				$this->_actual_ar = $actual_ar;
 			}
 		}
 
@@ -333,14 +336,17 @@
 		/**
 		 * Сообщить о результате сопоставления
 		 * @param bool $bool успех/неуспех
+		 * @param bool $replace_comment Собственный комментарий (из callback-методов, например)
 		 */
-		protected function _conditionMsg($bool)
+		protected function _conditionMsg($bool, $replace_comment = null)
 		{
 			$bool = ($this->_opposite) ? !$bool : $bool;
 			if ($bool) {
-				$this->_setTrueResult(self::KEY_CONDITION_VALID);
+				$comment = $replace_comment ? $replace_comment : self::KEY_CONDITION_VALID;
+				$this->_setTrueResult($comment);
 			} else {
-				$this->_setFalseResult(self::KEY_CONDITION_NOT_VALID);
+				$comment = $replace_comment ? $replace_comment : self::KEY_CONDITION_NOT_VALID;
+				$this->_setFalseResult($comment);
 			}
 		}
 
@@ -493,7 +499,18 @@
 					break;
 				case 'callback':
 					if (is_callable($expected)) {
-						$this->_conditionMsg(call_user_func($expected, $actual));
+						$callback_result = call_user_func($expected, $actual);
+						if (is_array($callback_result) && count($callback_result) <= 2) { // (bool, comments)
+							if (isset($callback_result[1]) && is_array($callback_result[1])) {
+								$this->_conditionMsg($callback_result[0], $callback_result[1]);
+							} else {
+								$this->_conditionMsg($callback_result[0]);
+							}
+						} elseif (is_bool($callback_result)) {
+							$this->_conditionMsg($callback_result);
+						} else {
+							$this->_setFalseResult(self::CALLBACK_NOT_VALID);
+						}
 					} else {
 						$this->_setFalseResult(self::CALLBACK_NOT_CALLABLE);
 					}

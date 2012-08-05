@@ -477,10 +477,26 @@
 			$this->assertFalse($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchComments());
 		}
-
+		/**
+		 * Простой каллбек со статусом bool
+		 * @param array $sub_ar
+		 * @return bool
+		 */
 		public function _callbackMethod($sub_ar)
 		{
 			return AMatch::runMatch($sub_ar)->key1()->key2()->key15(AMatch::OPTIONAL)->stopMatch();
+		}
+		/**
+		 * Расширенный каллбек с возвратом комментариев к ошибке
+		 * @param array $sub_ar
+		 * @return array
+		 */
+		public function _callbackMethodExtended($sub_ar)
+		{
+			$flags = AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
+			$result = AMatch::runMatch($sub_ar, $flags)->key1()->key2()->key15(AMatch::OPTIONAL);
+
+			return array($result->stopMatch(), $result->matchComments());	
 		}
 
 		public function testCallback()
@@ -495,6 +511,28 @@
 			'subject_id' => AMatch::KEY_CONDITION_NOT_VALID,
 			);
 
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+			
+			// Каллбек с собственными параметрами
+			$result = AMatch::runMatch($this->_actual_params, $flags)
+			->data(array($this, '_callbackMethodExtended'), 'callback') // true
+			->subject_id(array($this, '_callbackMethodExtended'), 'callback'); // false
+
+			$expected_ar = array (
+				'data' => array (
+						'key1' => AMatch::KEY_EXISTS,
+						'key2' => AMatch::KEY_EXISTS,
+						'key15' => AMatch::KEY_NOT_EXISTS_OPTIONAL, 
+				),
+				'subject_id' => array (
+						'runMatch' => AMatch::MATCHING_DATA_NOT_ARRAY,
+						'key1' => AMatch::KEY_NOT_EXISTS,
+						'key2' => AMatch::KEY_NOT_EXISTS,
+						'key15' => AMatch::KEY_NOT_EXISTS_OPTIONAL, 
+				) 
+			);
+			
 			$this->assertFalse($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchComments());
 		}
