@@ -54,6 +54,7 @@
 	 * @author KIVagant. Special thanks to Andrew Tereschenko, Andrew Lugovoi for ideas.
 	 * @see AMatchTest
 	 * @example examples/example.php Примеры использования с описанием
+	 * @license GNU GPL v2 http://opensource.org/licenses/gpl-2.0.php
 	 *
 	 */
 	class AMatch
