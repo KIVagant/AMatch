@@ -53,6 +53,7 @@
 	 * @package AMatch
 	 * @author KIVagant. Special thanks to Andrew Tereschenko, Andrew Lugovoi for ideas.
 	 * @see AMatchTest
+	 * @example examples/example.php Примеры использования с описанием
 	 *
 	 */
 	class AMatch
@@ -107,7 +108,7 @@
 		const FLAG_STRICT_STRUCTURE = 1;
 
 		/**
-		 * Не останавливать сопоставление даже если обнаружено условие несоответствия.
+		 * Не останавливать сопоставление, даже если обнаружено условие несоответствия.
 		 * Уникальная степень двойки для битмаски.
 		 * @var integer
 		 */
