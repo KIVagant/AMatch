@@ -32,7 +32,9 @@ $params_bad = array(
 );
 //$params = $params_bad;
 
-require_once('class.AMatch.php');
+require_once('../class.AMatch.php');
+require_once('../class.AMatchString.php');
+
 define('DEBUG_MODE', true);
 $flags = AMatch::FLAG_DONT_STOP_MATCHING | AMatch::FLAG_STRICT_STRUCTURE;
 if (DEBUG_MODE) {
@@ -58,6 +60,8 @@ function checkDocumentData($data)
 {
 	$result = AMatch::runMatch($data)
 	->flag('experiment') // Равно указанному
+	->flag(9, 'AMatchString::minLenght') // Минимальная длина
+	->flag(11, 'AMatchString::maxLenght') // Максимальная длина
 	->from_topic(specialValidation(), true) // Принять условие, если вызываемая пользовательская функция отработала с true
 	->from_topic(false) // Равно false
 	->link_id(AMatch::OPTIONAL, 'int') // Необязательный или int
@@ -79,7 +83,7 @@ if (!$result) {
 		. var_export($match->matchCommentsConditions(), true)
 	); // для наглядности умрём
 }
-echo 'Victory!';
+echo PHP_EOL . 'Victory!' . PHP_EOL;
 
 if (DEBUG_MODE) {
 	$comments = $match->matchComments();

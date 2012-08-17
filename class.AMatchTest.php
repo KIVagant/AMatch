@@ -1,5 +1,6 @@
 <?php
 	require_once('class.AMatch.php');
+	require_once('class.AMatchString.php');
 
 	/**
 	 * PHPUnit Test Class for AMatch
@@ -485,25 +486,29 @@
 				'data' => array('key15', 'key_exists'),
 				'parent_id' => array('', 'is_float'),
 				'stopMatch' => array(),
-				AMatch::_UNKNOWN_PARAMETERS_LIST => array() 
+				AMatch::_UNKNOWN_PARAMETERS_LIST => array()
 			);
 			$this->assertEquals($expected_conditions_ar, $result->matchCommentsConditions());
 		}
+
 		/**
 		 * Простой каллбек со статусом bool
 		 * @param array $sub_ar
+		 * @param array $param_name Имя анализируемого параметра, отправленного в callback
 		 * @return bool
 		 */
-		public function _callbackMethod($sub_ar)
+		public function _callbackMethod($sub_ar, $param_name)
 		{
 			return AMatch::runMatch($sub_ar)->key1()->key2()->key15(AMatch::OPTIONAL)->stopMatch();
 		}
+
 		/**
 		 * Расширенный каллбек с возвратом комментариев к ошибке
 		 * @param array $sub_ar
+		 * @param array $param_name Имя анализируемого параметра, отправленного в callback
 		 * @return array
 		 */
-		public function _callbackMethodExtended($sub_ar)
+		public function _callbackMethodWithComments($sub_ar, $param_name)
 		{
 			$flags = AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
 			$result = AMatch::runMatch($sub_ar, $flags)->key1()->key2()->key15(AMatch::OPTIONAL);
@@ -527,25 +532,26 @@
 			$this->assertEquals($expected_ar, $result->matchComments());
 		}
 	
-		public function testCallbackExtended()
+		public function testCallbackWithComments()
 		{
 			$flags = AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
-			// Каллбек с собственными параметрами
+
+			// Каллбек с возвращаемыми комментариями
 			$result = AMatch::runMatch($this->_actual_params, $flags)
-			->data(array($this, '_callbackMethodExtended'), 'callback') // true
-			->subject_id(array($this, '_callbackMethodExtended'), 'callback'); // false
+			->data(array($this, '_callbackMethodWithComments'), 'callback') // true
+			->subject_id(array($this, '_callbackMethodWithComments'), 'callback'); // false
 
 			$expected_ar = array(
 				'data' => array(
 						'key1' => AMatch::KEY_EXISTS,
 						'key2' => AMatch::KEY_EXISTS,
-						'key15' => AMatch::KEY_NOT_EXISTS_OPTIONAL, 
+						'key15' => AMatch::KEY_NOT_EXISTS_OPTIONAL,
 				),
 				'subject_id' => array(
 						'runMatch' => AMatch::MATCHING_DATA_NOT_ARRAY,
 						'key1' => AMatch::KEY_NOT_EXISTS,
 						'key2' => AMatch::KEY_NOT_EXISTS,
-						'key15' => AMatch::KEY_NOT_EXISTS_OPTIONAL, 
+						'key15' => AMatch::KEY_NOT_EXISTS_OPTIONAL,
 				)
 			);
 			
@@ -566,5 +572,37 @@
 				)
 			);
 			$this->assertEquals($expected_conditions_ar, $result->matchCommentsConditions());
+		}
+		
+		/**
+		 * @dataProvider _pluginsDataProvider
+		 * @param string $param_name Имя тестируемого ключа
+		 * @param callable $callback Вызываемый пользовательский метод
+		 * @param mixed $expected_value Ожидаемое значение (аргумент пользовательского метода)
+		 * @param bool $expected_result Ожидаемый результат выполнения
+		 * @param array $expected_comments Комментарии в случае неудачи
+		 */
+		public function testCallbackPlugins($param_name, $callback, $expected_value, $expected_result, $expected_comments = array())
+		{
+			$result = AMatch::runMatch($this->_actual_params)->$param_name($expected_value, $callback);
+			if ($expected_result) {
+				$this->assertTrue($result->stopMatch());
+			} else {
+				$this->assertFalse($result->stopMatch());
+				$this->assertEquals($expected_comments, $result->matchComments());
+			}
+		}
+
+		public static function _pluginsDataProvider()
+		{
+			return array(
+				array('title', 'AMatchString::minLenght', 15, true),
+				array('title', 'AMatchString::maxLenght', 15, true),
+				array('title', 'AMatchString::lenght', 15, true),
+				array('title', 'AMatchString::minLenght', 16, false, array('title' => 'Text is too short')),
+				array('title', 'AMatchString::maxLenght', 14, false, array('title' => 'Text is too long')),
+				array('title', 'AMatchString::lenght', 16, false, array('title' => 'Text is too short')),
+				array('title', 'AMatchString::lenght', 14, false, array('title' => 'Text is too long')),
+			);
 		}
 	}

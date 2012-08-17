@@ -45,6 +45,7 @@
 	 * //Работа с callback на примере вложенного массива:
 	 * function callbackMethod($ar) { return AMatch::runMatch($ar)->key()->stopMatch(); } // callback должен возвращать bool
 	 * $result = AMatch::runMatch($actual_ar)->sub_ar('callbackMethod', 'callback')->stopMatch();
+	 * $result = AMatch::runMatch($actual_ar)->title(13, 'AMatchString::minLenght')->title(18, 'AMatchString::maxLenght')->stopMatch(); // Длина строки не менее 13 и не более 18 символов
 	 *
 	 * //Цепочки:
 	 * AMatch::runMatch($actual_ar)->doc_id()->subject_id()->...->stopMatch();
@@ -531,30 +532,45 @@
 					$this->_conditionMsg($expected == false);
 					break;
 				case 'callback':
-					if (is_callable($expected)) {
-						$callback_result = call_user_func($expected, $actual);
-						if (is_array($callback_result) && count($callback_result) <= 3) { // (bool, comments, comment_conditions)
-							if (isset($callback_result[1]) && is_array($callback_result[1])) {
-								if (isset($callback_result[2]) && is_array($callback_result[2])) {
-									$this->_conditionMsg($callback_result[0], $callback_result[1], $callback_result[2]);
-								} else {
-									$this->_conditionMsg($callback_result[0], $callback_result[1]);
-								}
-							} else {
-								$this->_conditionMsg($callback_result[0]);
-							}
-						} elseif (is_bool($callback_result)) {
-							$this->_conditionMsg($callback_result);
-						} else {
-							$this->_setFalseResult(self::CALLBACK_NOT_VALID);
-						}
-					} else {
-						$this->_setFalseResult(self::CALLBACK_NOT_CALLABLE);
-					}
+
+						// Ожидаемое значение в данном случае содержит callable
+						// Пример вызова: ->some('MyClass::myfunc', 'callback')
+						$this->_callCallback($expected, $actual);
 					break;
 				default:
 					$this->_setFalseResult(self::CONDITION_IS_UNKNOWN);
 					break;
+			}
+		}
+
+		/**
+		 * Вызвать пользовательские функции
+		 *
+		 * @param callable $callable Вызываемая функция
+		 * @param mixed $actual Актуальное значение
+		 * @param mixed $additional_params Параметры вызова
+		 */
+		protected function _callCallback($callable, $actual, $additional_params = null)
+		{
+			if (is_callable($callable)) {
+				$callback_result = call_user_func($callable, $actual, $this->_param_key, $additional_params);
+				if (is_array($callback_result) && count($callback_result) <= 3) { // (bool, comments, comment_conditions)
+					if (!empty($callback_result[1])) {
+						if (!empty($callback_result[2])) {
+							$this->_conditionMsg($callback_result[0], $callback_result[1], $callback_result[2]);
+						} else {
+							$this->_conditionMsg($callback_result[0], $callback_result[1]);
+						}
+					} else {
+						$this->_conditionMsg($callback_result[0]);
+					}
+				} elseif (is_bool($callback_result)) {
+					$this->_conditionMsg($callback_result);
+				} else {
+					$this->_setFalseResult(self::CALLBACK_NOT_VALID);
+				}
+			} else {
+				$this->_setFalseResult(self::CALLBACK_NOT_CALLABLE);
 			}
 		}
 		
@@ -599,6 +615,19 @@
 				if ($condition === '') { // Передан '!', просто отменяем условие
 					$with_type = is_null($expected); // Для null сразу проверяем с типизацией
 					$this->_validateTwoValues($expected, $actual, $with_type, $this->_opposite);
+
+				// Extended callback
+				} elseif (strstr($condition, '::') !== false) {
+					$callback = explode('::', $condition);
+
+					// Если передано что-то вроде Class::method::wtf
+					if (count($callback) > 2 || empty($callback[0]) || empty($callback[1])) {
+						$this->_setFalseResult(self::CONDITION_IS_UNKNOWN);
+					} else {
+
+						// Пример вызова: ->some($callback_arguments, 'MyClass::myfunc')
+						$this->_callCallback($condition, $actual, $expected);
+					}
 				} else {
 					$this->_conditionValidate($condition, $expected, $actual);
 				}
