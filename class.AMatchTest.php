@@ -22,6 +22,7 @@
 			'title' => 'Actual document',
 			'empty_key' => false,
 			'empty_key2' => 'false',
+			'longlong' => '-1417234879143578612343412341252314123',
 			'data' => array(
 				'key1' => 'data1',
 				'key2' => 'data2',
@@ -159,11 +160,16 @@
 
 		public function testTypesValid()
 		{
-			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->doc_id(false, 'integer')->subject_id(false,
-				'string')->parent_id(false, 'integer')->title(false, 'string')->data(false, 'is_array')
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)
+				->doc_id(false, 'integer')
+				->subject_id(false, 'string')
+				->parent_id(false, 'integer')
+				->title(false, 'string')
+				->data(false, 'is_array')
 				->empty_key(false, 'bool')
 				->empty_key(false, 'smartbool')
 				->empty_key2(false, 'smartbool')
+				->longlong(false, 'longint')
 				;
 			$expected_ar = array(
 				'doc_id' => AMatch::KEY_TYPE_VALID,
@@ -173,6 +179,7 @@
 				'data' => AMatch::KEY_TYPE_VALID,
 				'empty_key' => AMatch::KEY_TYPE_VALID,
 				'empty_key2' => AMatch::KEY_TYPE_VALID,
+				'longlong' => AMatch::KEY_TYPE_VALID,
 			);
 			$this->assertTrue($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchComments());
@@ -445,7 +452,7 @@
 			'empty_key' => AMatch::KEY_CONDITION_VALID,
 			'bad_key' => AMatch::KEY_NOT_EXISTS_OPTIONAL,
 			'stopMatch' => AMatch::UNKNOWN_PARAMETERS_LIST,
-			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,parent_id,title,empty_key2,data',
+			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,parent_id,title,empty_key2,longlong,data',
 			);
 
 			$this->assertFalse($result->stopMatch());
@@ -487,7 +494,7 @@
 			'data' => AMatch::KEY_CONDITION_NOT_VALID,
 			'parent_id' => AMatch::KEY_TYPE_NOT_VALID,
 			'stopMatch' => AMatch::UNKNOWN_PARAMETERS_LIST,
-			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,subject_id,title,empty_key2',
+			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,subject_id,title,empty_key2,longlong',
 			);
 
 			$this->assertFalse($result->stopMatch());

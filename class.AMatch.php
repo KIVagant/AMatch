@@ -30,6 +30,7 @@
 	 * AMatch::runMatch($actual_ar)->doc_id(13, '!=')->stopMatch(); // doc_id != 13?
 	 * AMatch::runMatch($actual_ar)->data('key3', '!key_exists')->stopMatch(); // в массиве нет ключа?
 	 * AMatch::runMatch($actual_ar)->doc_id('', '!is_float')->stopMatch(); // это не дробное?
+	 * AMatch::runMatch($actual_ar)->doc_id('', 'longint')->stopMatch(); // является длинным интом (в т.ч. отрицательным)
 	 * // Работа с условиями и с CURRENT
 	 * AMatch::runMatch($actual_ar)->doc_id(AMatch::CURRENT, true)->stopMatch(); // значение doc_id == true (или valid)
 	 * AMatch::runMatch($actual_ar)->doc_id(AMatch::CURRENT, false)->stopMatch(); // значение doc_id == false (или invalid)
@@ -452,9 +453,13 @@
 				case 'integer':
 				case 'is_int':
 				case 'is_integer':
-				case 'long':
-				case 'is_long':
 					$this->_typeMsg(is_int($actual));
+					break;
+				case 'long':
+				case 'longint':
+				case 'is_long':
+				case 'is_longint':
+					$this->_typeMsg(preg_match('/^-?\d+$/', $actual)); // большой, длинный, необрезанный
 					break;
 				case 'float':
 				case 'floatval':
