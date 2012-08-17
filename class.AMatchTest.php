@@ -619,4 +619,27 @@
 				array('title', 'AMatchString::length', 14, false, array('title' => 'Text is too long')),
 			);
 		}
+		public function testUserErrorsComments()
+		{
+			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_DONT_STOP_MATCHING)
+				->bad_key(null, null, 'Wow!')
+				->title(array(1), 'in_array', 'Oops!')
+				->subject_id(200, 'AMatchString::length', 'Length!')
+				->data('', '!array', '!Array')
+				->empty_key(true, '==')
+				->empty_key(true, '', 'Bad!') // Стандартная ошибка должна замениться пользовательской
+				->empty_key2(23, '', 'Bad!')
+				->empty_key2(23, '==') // Пользовательская ошибка должна замениться стандартной
+			;
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals(array(
+				'bad_key' => 'Wow!',
+				'title' => 'Oops!',
+				'subject_id' => 'Length!',
+				'data' => '!Array',
+				'empty_key' => 'Bad!',
+				'empty_key2' => AMatch::KEY_CONDITION_NOT_VALID,
+			),
+			$result->matchComments());
+		}
 	}

@@ -75,4 +75,8 @@
 		
 			return array($result, $comments);
 		}
+		
+		public static function preg_match($param) {
+			;
+		}
 	}

@@ -54,6 +54,7 @@ $match = AMatch::runMatch($params, $flags)
 	->data('', '!empty') // не пустой
 	->data('old_property', '!key_exists') // не должно быть ключа
 	->data('experiment', 'in_array') // внутри массива есть значение 'experiment'
+	->data('experiment', 'in_array', 'My personal error text!') // Замена стандартной ошибки собственной на любом условии, кроме опциональных
 	->title() // существует
 	;
 

@@ -47,6 +47,9 @@
 	 * $result = AMatch::runMatch($actual_ar)->sub_ar('callbackMethod', 'callback')->stopMatch();
 	 * $result = AMatch::runMatch($actual_ar)->title(13, 'AMatchString::minLength')->title(18, 'AMatchString::maxLength')->stopMatch(); // Длина строки не менее 13 и не более 18 символов
 	 *
+	 * //Пользовательские ошибки (третий параметр)
+	 * $result = AMatch::runMatch($actual_ar)->doc_id(13, '<', 'Please, input correct document number!')->stopMatch();
+	 *
 	 * //Цепочки:
 	 * AMatch::runMatch($actual_ar)->doc_id()->subject_id()->...->stopMatch();
 	 * </code>
@@ -186,6 +189,12 @@
 		protected $_opposite = false;
 
 		/**
+		 * Пользовательский текст ошибки (переданный извне) на конкретное условие сопоставления
+		 * @var string
+		 */
+		protected $_user_error_comment = null;
+
+		/**
 		 * Можно передать массив актуальных параметров прямо в конструктор
 		 *
 		 * @param bitmask $flags Флаги сопоставления
@@ -278,7 +287,11 @@
 				}
 			} else {
 				$this->_result = false;
-				$this->_comment_ar[$this->_param_key] = $comment; // Перебиваем ранние комментарии
+
+				// Перебиваем ранние комментарии последней ошибкой
+				$this->_comment_ar[$this->_param_key] = empty($this->_user_error_comment)
+					? $comment
+					: $this->_user_error_comment;
 				$this->_comment_conditions_ar[$this->_param_key] = $comment_conditions
 					? $comment_conditions
 					: $this->_conditions_ar; // Перебиваем ранние условия для комментариев
@@ -698,6 +711,7 @@
 			$this->_param_key = $param_key;
 			$this->_params_keys_list[$param_key] = $param_key;
 			$this->_conditions_ar = $conditions_ar;
+			$this->_user_error_comment = array_key_exists(2, $this->_conditions_ar) ? $this->_conditions_ar[2] : null;
 
 			// Если в одном из предыдущих звеньях цепочки условие не было выполнено,
 			// не анализируем следующие условия
