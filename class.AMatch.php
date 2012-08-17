@@ -45,7 +45,7 @@
 	 * //Работа с callback на примере вложенного массива:
 	 * function callbackMethod($ar) { return AMatch::runMatch($ar)->key()->stopMatch(); } // callback должен возвращать bool
 	 * $result = AMatch::runMatch($actual_ar)->sub_ar('callbackMethod', 'callback')->stopMatch();
-	 * $result = AMatch::runMatch($actual_ar)->title(13, 'AMatchString::minLenght')->title(18, 'AMatchString::maxLenght')->stopMatch(); // Длина строки не менее 13 и не более 18 символов
+	 * $result = AMatch::runMatch($actual_ar)->title(13, 'AMatchString::minLength')->title(18, 'AMatchString::maxLength')->stopMatch(); // Длина строки не менее 13 и не более 18 символов
 	 *
 	 * //Цепочки:
 	 * AMatch::runMatch($actual_ar)->doc_id()->subject_id()->...->stopMatch();

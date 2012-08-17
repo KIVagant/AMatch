@@ -26,12 +26,12 @@
 		 *
 		 * @param mixed $actual Актуальное значение
 		 * @param string $param_name Имя анализируемого параметра, отправленного в callback
-		 * @param integer $max_lenght
+		 * @param integer $max_length
 		 */
-		public static function maxLenght($actual, $param_name, $max_lenght = null)
+		public static function maxLength($actual, $param_name, $max_length = null)
 		{
-			$lenght = mb_strlen($actual, self::$_encoding);
-			$result = $lenght <= $max_lenght;
+			$length = mb_strlen($actual, self::$_encoding);
+			$result = $length <= $max_length;
 			$comments = $result ? null : self::STRING_TOO_LONG;
 
 			return array($result, $comments);
@@ -42,12 +42,12 @@
 		 *
 		 * @param mixed $actual Актуальное значение
 		 * @param string $param_name Имя анализируемого параметра, отправленного в callback
-		 * @param integer $min_lenght
+		 * @param integer $min_length
 		 */
-		public static function minLenght($actual, $param_name, $min_lenght = null)
+		public static function minLength($actual, $param_name, $min_length = null)
 		{
-			$lenght = mb_strlen($actual, self::$_encoding);
-			$result = $lenght >= $min_lenght;
+			$length = mb_strlen($actual, self::$_encoding);
+			$result = $length >= $min_length;
 			$comments = $result ? null : self::STRING_TOO_SHORT;
 
 			return array($result, $comments);
@@ -58,16 +58,16 @@
 		 *
 		 * @param mixed $actual Актуальное значение
 		 * @param string $param_name Имя анализируемого параметра, отправленного в callback
-		 * @param integer $expected_lenght
+		 * @param integer $expected_length
 		 */
-		public static function lenght($actual, $param_name, $expected_lenght = null)
+		public static function length($actual, $param_name, $expected_length = null)
 		{
-			$lenght = mb_strlen($actual, self::$_encoding);
-			$result = $lenght == $expected_lenght;
+			$length = mb_strlen($actual, self::$_encoding);
+			$result = $length == $expected_length;
 			$comments = $result
 				? null
 				: (
-					$lenght < $expected_lenght
+					$length < $expected_length
 						? self::STRING_TOO_SHORT
 						: self::STRING_TOO_LONG
 				)

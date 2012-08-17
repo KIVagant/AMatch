@@ -60,8 +60,8 @@ function checkDocumentData($data)
 {
 	$result = AMatch::runMatch($data)
 	->flag('experiment') // Равно указанному
-	->flag(9, 'AMatchString::minLenght') // Минимальная длина
-	->flag(11, 'AMatchString::maxLenght') // Максимальная длина
+	->flag(9, 'AMatchString::minLength') // Минимальная длина
+	->flag(11, 'AMatchString::maxLength') // Максимальная длина
 	->from_topic(specialValidation(), true) // Принять условие, если вызываемая пользовательская функция отработала с true
 	->from_topic(false) // Равно false
 	->link_id(AMatch::OPTIONAL, 'int') // Необязательный или int

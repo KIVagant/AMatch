@@ -596,13 +596,13 @@
 		public static function _pluginsDataProvider()
 		{
 			return array(
-				array('title', 'AMatchString::minLenght', 15, true),
-				array('title', 'AMatchString::maxLenght', 15, true),
-				array('title', 'AMatchString::lenght', 15, true),
-				array('title', 'AMatchString::minLenght', 16, false, array('title' => 'Text is too short')),
-				array('title', 'AMatchString::maxLenght', 14, false, array('title' => 'Text is too long')),
-				array('title', 'AMatchString::lenght', 16, false, array('title' => 'Text is too short')),
-				array('title', 'AMatchString::lenght', 14, false, array('title' => 'Text is too long')),
+				array('title', 'AMatchString::minLength', 15, true),
+				array('title', 'AMatchString::maxLength', 15, true),
+				array('title', 'AMatchString::length', 15, true),
+				array('title', 'AMatchString::minLength', 16, false, array('title' => 'Text is too short')),
+				array('title', 'AMatchString::maxLength', 14, false, array('title' => 'Text is too long')),
+				array('title', 'AMatchString::length', 16, false, array('title' => 'Text is too short')),
+				array('title', 'AMatchString::length', 14, false, array('title' => 'Text is too long')),
 			);
 		}
 	}
