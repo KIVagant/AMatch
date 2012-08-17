@@ -16,6 +16,7 @@ $params = array(
 	'data' => array(
 		'flag' => 'experiment',
 		'from_topic' => false,
+		'checker' => 'true',
 	),
 );
 
@@ -64,6 +65,7 @@ function checkDocumentData($data)
 	->flag(11, 'AMatchString::maxLength') // Максимальная длина
 	->from_topic(specialValidation(), true) // Принять условие, если вызываемая пользовательская функция отработала с true
 	->from_topic(false) // Равно false
+	->checker('', 'smartbool') // Принадлежит типу "умное булево"
 	->link_id(AMatch::OPTIONAL, 'int') // Необязательный или int
 	;
 

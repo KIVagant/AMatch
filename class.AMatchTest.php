@@ -21,7 +21,7 @@
 			'parent_id' => 32,
 			'title' => 'Actual document',
 			'empty_key' => false,
-			'empty_key2' => false,
+			'empty_key2' => 'false',
 			'data' => array(
 				'key1' => 'data1',
 				'key2' => 'data2',
@@ -161,6 +161,9 @@
 		{
 			$result = AMatch::runMatch($this->_actual_params, AMatch::FLAG_SHOW_GOOD_COMMENTS)->doc_id(false, 'integer')->subject_id(false,
 				'string')->parent_id(false, 'integer')->title(false, 'string')->data(false, 'is_array')
+				->empty_key(false, 'bool')
+				->empty_key(false, 'smartbool')
+				->empty_key2(false, 'smartbool')
 				;
 			$expected_ar = array(
 				'doc_id' => AMatch::KEY_TYPE_VALID,
@@ -168,6 +171,8 @@
 				'parent_id' => AMatch::KEY_TYPE_VALID,
 				'title' => AMatch::KEY_TYPE_VALID,
 				'data' => AMatch::KEY_TYPE_VALID,
+				'empty_key' => AMatch::KEY_TYPE_VALID,
+				'empty_key2' => AMatch::KEY_TYPE_VALID,
 			);
 			$this->assertTrue($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchComments());
@@ -195,6 +200,15 @@
 			$expected_ar = array(
 				'data' => AMatch::KEY_TYPE_NOT_VALID,
 			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchComments());
+
+			//
+			$result = AMatch::runMatch($this->_actual_params)->parent_id(false, 'smartbool');
+			$expected_ar = array(
+				'parent_id' => AMatch::KEY_TYPE_NOT_VALID,
+			);
+
 			$this->assertFalse($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchComments());
 		}

@@ -460,7 +460,14 @@
 				case 'boolean':
 				case 'is_bool':
 				case 'is_boolean':
-					$this->_typeMsg(is_array($actual));
+					$this->_typeMsg(is_bool($actual));
+					break;
+				case 'stringbool':
+				case 'smartbool':
+				case 'is_stringbool':
+				case 'is_smartbool':
+					$valid_bool = array('1', '0', 'true', 'false', true, false, 1, 0);
+					$this->_typeMsg(in_array($actual, $valid_bool, true));
 					break;
 				case 'null':
 				case 'is_null':
