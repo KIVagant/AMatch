@@ -459,7 +459,9 @@
 				case 'longint':
 				case 'is_long':
 				case 'is_longint':
-					$this->_typeMsg(preg_match('/^-?\d+$/', $actual)); // большой, длинный, необрезанный
+					$this->_typeMsg(
+						(is_string($actual) || is_numeric($actual)) && preg_match('/^-?\d+$/', $actual)
+					); // большой, длинный, необрезанный
 					break;
 				case 'float':
 				case 'floatval':

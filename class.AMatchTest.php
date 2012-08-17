@@ -315,6 +315,8 @@
 			->parent_id(1, '!is_string')
 			->empty_key(null, '!')
 			->data('key9', '!key_exists')
+			->data('', '!longint')
+			->title('', '!longint')
 			;
 			$expected_ar = array(
 				'doc_id' => AMatch::KEY_CONDITION_VALID,
@@ -322,6 +324,7 @@
 				'parent_id' => AMatch::KEY_TYPE_VALID,
 				'empty_key' => AMatch::KEY_VALID_FULLY,
 				'data' => AMatch::KEY_CONDITION_VALID,
+				'title' => AMatch::KEY_TYPE_VALID,
 			);
 			$this->assertTrue($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchComments());
