@@ -628,10 +628,10 @@
 				array(self::$actual_params, 'title', 'AMatchString::minLength', 15, true),
 				array(self::$actual_params, 'title', 'AMatchString::maxLength', 15, true),
 				array(self::$actual_params, 'title', 'AMatchString::length', 15, true),
-				array(self::$actual_params, 'title', 'AMatchString::minLength', 16, false, array('title' => 'Text is too short')),
-				array(self::$actual_params, 'title', 'AMatchString::maxLength', 14, false, array('title' => 'Text is too long')),
-				array(self::$actual_params, 'title', 'AMatchString::length', 16, false, array('title' => 'Text is too short')),
-				array(self::$actual_params, 'title', 'AMatchString::length', 14, false, array('title' => 'Text is too long')),
+				array(self::$actual_params, 'title', 'AMatchString::minLength', 16, false, array('title' => AMatchString::STRING_TOO_SHORT)),
+				array(self::$actual_params, 'title', 'AMatchString::maxLength', 14, false, array('title' => AMatchString::STRING_TOO_LONG)),
+				array(self::$actual_params, 'title', 'AMatchString::length', 16, false, array('title' => AMatchString::STRING_TOO_SHORT)),
+				array(self::$actual_params, 'title', 'AMatchString::length', 14, false, array('title' => AMatchString::STRING_TOO_LONG)),
 			
 				//
 				array( array('classic' => array()), 'classic', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_CLASSIC, true),
@@ -643,6 +643,8 @@
 				array( array('some' => array()), 'some', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_SOME_ELEMENT, true),
 				array( array('some' => array(0, array(0, array(0)))), 'some', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_SOME_ELEMENT, true),
 				array( array('integers' => array(0, '1234', '-213', -432, '-12314924312341324132412341234123')), 'integers', 'AMatchArray::onlyIntegerValues', '', true),
+				array( array('user' => 'some.user_check@i.ua'), 'user', 'AMatchString::isEmail', '', true),
+				array( array('int' => '-12342451235345124351234124'), 'int', 'AMatchString::pregMatch', '/^-?\d+$/', true),
 
 				//
 				array( array('classic' => array(array())), 'classic', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_CLASSIC, false, array('classic' => AMatchArray::EMPTY_ARRAY_CLASSIC)),
@@ -654,6 +656,8 @@
 				array( array('integers' => array(0, '1234', '-213', -432, '- 12314924312341324132412341234123')), 'integers', 'AMatchArray::onlyIntegerValues', '', false, array('integers' => AMatchArray::ARRAY_OF_INTS_REQUIRED)),
 				array( array('integers' => array('0.12')), 'integers', 'AMatchArray::onlyIntegerValues', '', false, array('integers' => AMatchArray::ARRAY_OF_INTS_REQUIRED)),
 				array( array('integers' => array(0.33)), 'integers', 'AMatchArray::onlyIntegerValues', '', false, array('integers' => AMatchArray::ARRAY_OF_INTS_REQUIRED)),
+				array( array('user' => 'aaa@.com'), 'user', 'AMatchString::isEmail', '', false, array('user' => AMatchString::STRING_IS_NOT_EMAIL)),
+				array( array('int' => '1.123'), 'int', 'AMatchString::pregMatch', '/^-?\d+$/', false, array('int' => AMatchString::REGEXP_FAILURE)),
 			);
 		}
 

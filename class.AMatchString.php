@@ -9,8 +9,10 @@
 	class AMatchString
 	{
 		protected static $_encoding = 'UTF-8';
-		const STRING_TOO_SHORT = 'Text is too short';
-		const STRING_TOO_LONG = 'Text is too long';
+		const STRING_TOO_SHORT = 'String is too short';
+		const STRING_TOO_LONG = 'String is too long';
+		const REGEXP_FAILURE = 'The string does not match the regular expression';
+		const STRING_IS_NOT_EMAIL = 'Incorrect email';
 
 		/**
 		 * Поменять кодировку по-умолчанию
@@ -33,8 +35,9 @@
 			$length = mb_strlen($actual, self::$_encoding);
 			$result = $length <= $max_length;
 			$comments = $result ? null : self::STRING_TOO_LONG;
+			$comments_conditions = array($max_length, __METHOD__);
 
-			return array($result, $comments);
+			return array($result, $comments, $comments_conditions);
 		}
 		
 		/**
@@ -49,8 +52,9 @@
 			$length = mb_strlen($actual, self::$_encoding);
 			$result = $length >= $min_length;
 			$comments = $result ? null : self::STRING_TOO_SHORT;
+			$comments_conditions = array($min_length, __METHOD__);
 
-			return array($result, $comments);
+			return array($result, $comments, $comments_conditions);
 		}
 		
 		/**
@@ -72,7 +76,46 @@
 						: self::STRING_TOO_LONG
 				)
 			;
+			$comments_conditions = array($expected_length, __METHOD__);
 		
-			return array($result, $comments);
+			return array($result, $comments, $comments_conditions);
+		}
+
+		/**
+		 * Проверка на соответствие строки регулярному выражению
+		 *
+		 * @param mixed $actual Актуальное значение
+		 * @param string $param_name Имя анализируемого параметра, отправленного в callback
+		 * @param string $regexp Регулярное выражение
+		 * @return array [result|comments]
+		 */
+		public static function pregMatch($actual, $param_name, $regexp)
+		{
+			$result = is_string($actual) && preg_match($regexp, $actual);
+			$comments = $result ? null : self::REGEXP_FAILURE;
+			$comments_conditions = array($regexp, __METHOD__);
+		
+			return array($result, $comments, $comments_conditions);
+		}
+
+		/**
+		 * Является ли строка email-ом
+		 *
+		 * @param mixed $actual Актуальное значение
+		 * @param string $param_name Имя анализируемого параметра, отправленного в callback
+		 * @param string $regexp Собственное регулярное выражение вместо проверки на FILTER_VALIDATE_EMAIL
+		 * @return array [result|comments]
+		 */
+		public static function isEmail($actual, $param_name, $regexp = null)
+		{
+			if (empty($regexp)) {
+				$result = filter_var($actual, FILTER_VALIDATE_EMAIL);
+			} else {
+				$result = is_string($actual) && preg_match($regexp, $actual);
+			}
+			$comments = $result ? null : self::STRING_IS_NOT_EMAIL;
+			$comments_conditions = array($actual, __METHOD__);
+		
+			return array($result, $comments, $comments_conditions);
 		}
 	}

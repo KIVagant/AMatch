@@ -8,17 +8,17 @@
 	 */
 	class AMatchArray
 	{
-		const ACTUAL_IS_NOT_ARRAY = 'Array needed.';
-		const ARRAY_OF_INTS_REQUIRED = 'The array must contain only items of type integer.';
+		const ACTUAL_IS_NOT_ARRAY = 'Array needed';
+		const ARRAY_OF_INTS_REQUIRED = 'The array must contain only items of type integer';
 
-		const EMPTY_ARRAY_CLASSIC = 'Array must be empty.';
-		const EMPTY_ARRAY_FIRST_ELEMENT = 'The array must be empty or contain a one empty element.';
-		const EMPTY_ARRAY_SOME_ELEMENT = 'All elements in array must be empty (recursive).';
+		const EMPTY_ARRAY_CLASSIC = 'Array must be empty';
+		const EMPTY_ARRAY_FIRST_ELEMENT = 'The array must be empty or contain a one empty element';
+		const EMPTY_ARRAY_SOME_ELEMENT = 'All elements in array must be empty';
 
-		const NON_EMPTY_ARRAY_CLASSIC = 'Array must be non-empty.';
-		const NON_EMPTY_ARRAY_FIRST_ELEMENT = 'The array must contain a non-empty element or more than one element.';
-		const NON_EMPTY_ARRAY_SOME_ELEMENT = 'At least one element of the array must be non-empty.';
-		
+		const NON_EMPTY_ARRAY_CLASSIC = 'Array must be non-empty';
+		const NON_EMPTY_ARRAY_FIRST_ELEMENT = 'The array must contain a non-empty element or more than one element';
+		const NON_EMPTY_ARRAY_SOME_ELEMENT = 'At least one element of the array must be non-empty';
+
 		/**
 		 * Классическая проверка на пустоту (провалит array( 0 => '' ))
 		 * @var integer
@@ -100,8 +100,9 @@
 					$comments = $result ? null : self::EMPTY_ARRAY_CLASSIC;
 					break;
 			}
+			$comments_conditions = array(null, __METHOD__);
 
-			return array($result, $comments);
+			return array($result, $comments, $comments_conditions);
 		}
 
 		/**
@@ -130,8 +131,9 @@
 					$comments = $result ? null : self::NON_EMPTY_ARRAY_CLASSIC;
 					break;
 			}
+			$comments_conditions = array(null, __METHOD__);
 			
-			return array($result, $comments);
+			return array($result, $comments, $comments_conditions);
 		}
 
 		/**
@@ -144,9 +146,12 @@
 		public static function onlyIntegerValues($actual, $param_name)
 		{
 			$result = true;
+			$bad_key = $bad_value = null;
 			if (is_array($actual)) {
 				foreach ($actual as $k => $v) {
 					if (!((is_string($v) || is_numeric($v)) && preg_match('/^-?\d+$/', $v))) {
+						$bad_key = $k;
+						$bad_value = $v;
 						$result = false;
 						break;
 					}
@@ -157,6 +162,10 @@
 				$comments = self::ACTUAL_IS_NOT_ARRAY;
 			}
 
-			return array($result, $comments);
+			$comments_conditions = $bad_key
+				? array($bad_key . '=>' . $bad_value, __METHOD__)
+				: array(null, __METHOD__);
+
+			return array($result, $comments, $comments_conditions);
 		}
 	}
