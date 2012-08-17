@@ -642,6 +642,7 @@
 				array( array('first' => array(0)), 'first', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_FIRST_ELEMENT, true),
 				array( array('some' => array()), 'some', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_SOME_ELEMENT, true),
 				array( array('some' => array(0, array(0, array(0)))), 'some', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_SOME_ELEMENT, true),
+				array( array('integers' => array(0, '1234', '-213', -432, '-12314924312341324132412341234123')), 'integers', 'AMatchArray::onlyIntegerValues', '', true),
 
 				//
 				array( array('classic' => array(array())), 'classic', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_CLASSIC, false, array('classic' => AMatchArray::EMPTY_ARRAY_CLASSIC)),
@@ -650,6 +651,9 @@
 				array( array('first' => array(array(array(array(), array())))), 'first', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_FIRST_ELEMENT, false, array('first' => AMatchArray::EMPTY_ARRAY_FIRST_ELEMENT)),
 				array( array('first' => array(0, '')), 'first', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_FIRST_ELEMENT, false, array('first' => AMatchArray::EMPTY_ARRAY_FIRST_ELEMENT) ),
 				array( array('some' => array(0, array(0, array(0, 1)))), 'some', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_SOME_ELEMENT, false, array('some' => AMatchArray::EMPTY_ARRAY_SOME_ELEMENT)),
+				array( array('integers' => array(0, '1234', '-213', -432, '- 12314924312341324132412341234123')), 'integers', 'AMatchArray::onlyIntegerValues', '', false, array('integers' => AMatchArray::ARRAY_OF_INTS_REQUIRED)),
+				array( array('integers' => array('0.12')), 'integers', 'AMatchArray::onlyIntegerValues', '', false, array('integers' => AMatchArray::ARRAY_OF_INTS_REQUIRED)),
+				array( array('integers' => array(0.33)), 'integers', 'AMatchArray::onlyIntegerValues', '', false, array('integers' => AMatchArray::ARRAY_OF_INTS_REQUIRED)),
 			);
 		}
 

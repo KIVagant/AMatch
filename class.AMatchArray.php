@@ -8,6 +8,9 @@
 	 */
 	class AMatchArray
 	{
+		const ACTUAL_IS_NOT_ARRAY = 'Array needed.';
+		const ARRAY_OF_INTS_REQUIRED = 'The array must contain only items of type integer.';
+
 		const EMPTY_ARRAY_CLASSIC = 'Array must be empty.';
 		const EMPTY_ARRAY_FIRST_ELEMENT = 'The array must be empty or contain a one empty element.';
 		const EMPTY_ARRAY_SOME_ELEMENT = 'All elements in array must be empty (recursive).';
@@ -128,6 +131,32 @@
 					break;
 			}
 			
+			return array($result, $comments);
+		}
+
+		/**
+		 * Массив должен содержать только значения с типом int или быть пустым
+		 *
+		 * @param array $actual Актуальное значение
+		 * @param string $param_name Имя анализируемого параметра, отправленного в callback
+		 * @return array [result|comments]
+		 */
+		public static function onlyIntegerValues($actual, $param_name)
+		{
+			$result = true;
+			if (is_array($actual)) {
+				foreach ($actual as $k => $v) {
+					if (!((is_string($v) || is_numeric($v)) && preg_match('/^-?\d+$/', $v))) {
+						$result = false;
+						break;
+					}
+				}
+				$comments = $result ? null : self::ARRAY_OF_INTS_REQUIRED;
+			} else {
+				$result = false;
+				$comments = self::ACTUAL_IS_NOT_ARRAY;
+			}
+
 			return array($result, $comments);
 		}
 	}
