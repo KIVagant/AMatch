@@ -698,6 +698,7 @@
 		
 			return $this->_result_ar;
 		}
+
 		/**
 		 * Вернуть комментарий к результату
 		 *
@@ -706,8 +707,8 @@
 		public function matchComments()
 		{
 			$comments_ar = array();
-			foreach ($this->_result_ar as $key => $status_code) {
-				$comments_ar[$key] = $this->_status_obj->getComment($status_code);
+			foreach ($this->_result_ar as $param => $status_code) {
+				$comments_ar[$param] = $this->_status_obj->getComment($status_code);
 			}
 
 			return $comments_ar;

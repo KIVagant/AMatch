@@ -151,7 +151,7 @@
 					: array(null, __METHOD__);
 			} else {
 				$result = false;
-				$comments = AMatch::KEY_TYPE_NOT_VALID;
+				$comments = AMatchStatus::KEY_TYPE_NOT_VALID;
 				$comments_conditions = array('array', __METHOD__);
 			}
 
