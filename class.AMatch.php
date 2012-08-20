@@ -84,7 +84,6 @@
 		const CALLBACK_NOT_VALID = 'Callable method return bad result';
 		const MATCHING_DATA_NOT_ARRAY = 'Incoming data is not an array';
 		const _UNKNOWN_PARAMETERS_LIST = 'Unknown parameters:';
-		const OPTIONAL_SKIPPED = 'Optional parameter, skipped bad condition result';
 
 		/**
 		 * Ожидаемое значение, означающее, что проверяемый параметр не обязателен
@@ -278,14 +277,8 @@
 		 */
 		protected function _setFalseResult($comment, $comment_conditions = null)
 		{
-			if (isset($this->_params_keys_list_optional[$this->_param_key])) {
-				$this->_result = true;
-				if ($this->_haveFlag(self::FLAG_SHOW_GOOD_COMMENTS)) {
-					$this->_comment_ar[$this->_param_key] = self::OPTIONAL_SKIPPED; // Перебиваем ранние комментарии
-					$this->_comment_conditions_ar[$this->_param_key] = $comment_conditions
-						? $comment_conditions
-						: $this->_conditions_ar; // Перебиваем ранние условия для комментариев
-				}
+			if (array_key_exists($this->_param_key, $this->_params_keys_list_optional)) {
+				$this->_setTrueResult(self::KEY_NOT_EXISTS_OPTIONAL, $comment_conditions);
 			} else {
 				$this->_result = false;
 

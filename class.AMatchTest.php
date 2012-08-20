@@ -492,14 +492,16 @@
 			->data('key1', '!key_exists') // false Требование отсутствие ключа
 			->data('key15', 'key_exists') // false Существование ключа
 			->parent_id('', 'is_float') // false Требуется float
+			->something(AMatch::OPTIONAL) // Необязательный параметр в конце условий (ошибка перебивания результата на true)
 			;
 			
 			$expected_ar = array(
-			'bad_key' => AMatch::OPTIONAL_SKIPPED,
+			'bad_key' => AMatch::KEY_NOT_EXISTS_OPTIONAL,
 			'missed_key' => AMatch::KEY_NOT_EXISTS,
 			'empty_key' => AMatch::KEY_CONDITION_NOT_VALID,
 			'data' => AMatch::KEY_CONDITION_NOT_VALID,
 			'parent_id' => AMatch::KEY_TYPE_NOT_VALID,
+			'something' => AMatch::KEY_NOT_EXISTS_OPTIONAL,
 			'stopMatch' => AMatch::UNKNOWN_PARAMETERS_LIST,
 			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,subject_id,title,empty_key2,longlong',
 			);
@@ -508,11 +510,12 @@
 			$this->assertEquals($expected_ar, $result->matchComments());
 
 			$expected_conditions_ar = array(
-				'bad_key' => array('14', '<'),
+				'bad_key' => array(AMatch::OPTIONAL),
 				'missed_key' => array('', 'is_array'),
 				'empty_key' => array(true),
 				'data' => array('key15', 'key_exists'),
 				'parent_id' => array('', 'is_float'),
+				'something' => array(AMatch::OPTIONAL),
 				'stopMatch' => array(),
 				AMatch::_UNKNOWN_PARAMETERS_LIST => array()
 			);
