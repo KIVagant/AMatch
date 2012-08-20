@@ -564,6 +564,25 @@
 			return array($result->stopMatch(), $result->matchResults(), $result->matchCommentsConditions());
 		}
 
+		public function testCallbackBad()
+		{
+			$flags = AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
+			$result = AMatch::runMatch(AMatchTest::$actual_params, $flags)
+			->subject_id('', 'AMatchString->min::max')
+			->title('AMatchString->max::min', 'callback')
+			->longlong('AMatchString->max->min', 'callback')
+			;
+
+			$expected_ar = array(
+				'subject_id' => AMatchStatus::CALLBACK_NOT_CALLABLE,
+				'title' => AMatchStatus::CALLBACK_NOT_CALLABLE,
+				'longlong' => AMatchStatus::CALLBACK_NOT_CALLABLE,
+			);
+
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchResults());
+		}
+
 		public function testCallbackSimple()
 		{
 			$flags = AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
@@ -639,7 +658,7 @@
 		public static function _pluginsDataProvider()
 		{
 			return array(
-				array(self::$actual_params, 'title', 'AMatchString::minLength', 15, true),
+				array(self::$actual_params, 'title', 'AMatchString->minLength', 15, true), // Можно вызывать через ->
 				array(self::$actual_params, 'title', 'AMatchString::maxLength', 15, true),
 				array(self::$actual_params, 'title', 'AMatchString::length', 15, true),
 				array(self::$actual_params, 'title', 'AMatchString::minLength', 16, false, array('title' => AMatchStatus::STRING_TOO_SHORT)),

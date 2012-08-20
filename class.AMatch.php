@@ -579,6 +579,26 @@
 		 */
 		protected function _callCallback($callable, $actual, $additional_params = null)
 		{
+			if (is_string($callable) && strstr($callable, '->') !== false) {
+				$callback = explode('->', $callable);
+
+				// Если передано что-то вроде Class->method->wtf
+				if (count($callback) > 2 || empty($callback[0]) || empty($callback[1])) {
+					$this->_setFalseResult(AMatchStatus::CALLBACK_NOT_CALLABLE);
+
+					return false;
+				} else {
+					if (class_exists($callback[0])) {
+						$obj = new $callback[0];
+						$callable = array($obj, $callback[1]);
+					} else {
+						$this->_setFalseResult(AMatchStatus::CALLBACK_NOT_CALLABLE);
+
+						return false;
+					}
+				}
+			}
+			
 			if (is_callable($callable)) {
 				$callback_result = call_user_func($callable, $actual, $this->_param_key, $additional_params);
 				if (is_array($callback_result) && count($callback_result) <= 3) { // (bool, comments, comment_conditions)
@@ -644,17 +664,10 @@
 					$this->_validateTwoValues($expected, $actual, $with_type, $this->_opposite);
 
 				// Extended callback
-				} elseif (strstr($condition, '::') !== false) {
-					$callback = explode('::', $condition);
+				} elseif (strstr($condition, '->') !== false || strstr($condition, '::') !== false) {
 
-					// Если передано что-то вроде Class::method::wtf
-					if (count($callback) > 2 || empty($callback[0]) || empty($callback[1])) {
-						$this->_setFalseResult(AMatchStatus::CONDITION_IS_UNKNOWN);
-					} else {
-
-						// Пример вызова: ->some($callback_arguments, 'MyClass::myfunc')
-						$this->_callCallback($condition, $actual, $expected);
-					}
+					// Пример вызова: ->some($callback_arguments, 'MyClass::myfunc')->some($callback_arguments, 'MyClass->myfunc')
+					$this->_callCallback($condition, $actual, $expected);
 				} else {
 					$this->_conditionValidate($condition, $expected, $actual);
 				}
