@@ -3,22 +3,11 @@
 	 * callback-методы для валидации массивов
 	 *
 	 * @package AMatch
-	 * @author KIVagant
+	 * @author KIVagant <KIVagant@gmail.com>
 	 * @see AMatch
 	 */
 	class AMatchArray
 	{
-		const ACTUAL_IS_NOT_ARRAY = 'Array needed';
-		const ARRAY_OF_INTS_REQUIRED = 'The array must contain only items of type integer';
-
-		const EMPTY_ARRAY_CLASSIC = 'Array must be empty';
-		const EMPTY_ARRAY_FIRST_ELEMENT = 'The array must be empty or contain a one empty element';
-		const EMPTY_ARRAY_SOME_ELEMENT = 'All elements in array must be empty';
-
-		const NON_EMPTY_ARRAY_CLASSIC = 'Array must be non-empty';
-		const NON_EMPTY_ARRAY_FIRST_ELEMENT = 'The array must contain a non-empty element or more than one element';
-		const NON_EMPTY_ARRAY_SOME_ELEMENT = 'At least one element of the array must be non-empty';
-
 		/**
 		 * Классическая проверка на пустоту (провалит array( 0 => '' ))
 		 * @var integer
@@ -88,16 +77,16 @@
 			switch ($flag) {
 				case self::FLAG_EMPTY_FIRST_ELEMENT:
 					$result = self::_isEmptyFirstElement($actual);
-					$comments = $result ? null : self::EMPTY_ARRAY_FIRST_ELEMENT;
+					$comments = $result ? null : AMatchStatus::EMPTY_ARRAY_FIRST_ELEMENT;
 					break;
 				case self::FLAG_EMPTY_SOME_ELEMENT:
 					$result = self::_isEmptyRecursive($actual);
-					$comments = $result ? null : self::EMPTY_ARRAY_SOME_ELEMENT;
+					$comments = $result ? null : AMatchStatus::EMPTY_ARRAY_SOME_ELEMENT;
 					break;
 				case self::FLAG_EMPTY_CLASSIC:
 				default:
 					$result = empty($actual);
-					$comments = $result ? null : self::EMPTY_ARRAY_CLASSIC;
+					$comments = $result ? null : AMatchStatus::EMPTY_ARRAY_CLASSIC;
 					break;
 			}
 			$comments_conditions = array(null, __METHOD__);
@@ -119,16 +108,16 @@
 			switch ($flag) {
 				case self::FLAG_EMPTY_FIRST_ELEMENT:
 					$result = !self::_isEmptyFirstElement($actual);
-					$comments = $result ? null : self::NON_EMPTY_ARRAY_FIRST_ELEMENT;
+					$comments = $result ? null : AMatchStatus::NON_EMPTY_ARRAY_FIRST_ELEMENT;
 					break;
 				case self::FLAG_EMPTY_SOME_ELEMENT:
 					$result = !self::_isEmptyRecursive($actual);
-					$comments = $result ? null : self::NON_EMPTY_ARRAY_SOME_ELEMENT;
+					$comments = $result ? null : AMatchStatus::NON_EMPTY_ARRAY_SOME_ELEMENT;
 					break;
 				case self::FLAG_EMPTY_CLASSIC:
 				default:
 					$result = !empty($actual);
-					$comments = $result ? null : self::NON_EMPTY_ARRAY_CLASSIC;
+					$comments = $result ? null : AMatchStatus::NON_EMPTY_ARRAY_CLASSIC;
 					break;
 			}
 			$comments_conditions = array(null, __METHOD__);
@@ -156,15 +145,15 @@
 						break;
 					}
 				}
-				$comments = $result ? null : self::ARRAY_OF_INTS_REQUIRED;
+				$comments = $result ? null : AMatchStatus::ARRAY_OF_INTS_REQUIRED;
+				$comments_conditions = $bad_key
+					? array($bad_key . '=>' . $bad_value, __METHOD__)
+					: array(null, __METHOD__);
 			} else {
 				$result = false;
-				$comments = self::ACTUAL_IS_NOT_ARRAY;
+				$comments = AMatch::KEY_TYPE_NOT_VALID;
+				$comments_conditions = array('array', __METHOD__);
 			}
-
-			$comments_conditions = $bad_key
-				? array($bad_key . '=>' . $bad_value, __METHOD__)
-				: array(null, __METHOD__);
 
 			return array($result, $comments, $comments_conditions);
 		}

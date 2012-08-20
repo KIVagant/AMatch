@@ -1,4 +1,6 @@
 <?php
+	require_once 'class.AMatchStatus.php';
+
 	/**
 	 * Класс для проверки содержимого массивов
 	 *
@@ -60,29 +62,13 @@
 	 * @see AMatchTest
 	 * @example examples/example.php Примеры использования с описанием
 	 * @license GNU GPL v2 http://opensource.org/licenses/gpl-2.0.php
-	 *
+	 * @link https://github.com/KIVagant/AMatch
 	 */
 	class AMatch
 	{
-		// Успешные условия
-		const KEY_NOT_EXISTS_OPTIONAL = 'OK. Expected optional parameter does not exist';
-		const KEY_EXISTS = 'OK. Expected parameter exist in the array of parameters';
-		const KEY_VALID_FULLY = 'OK. Expected parameter is fully valid';
-		const KEY_TYPE_VALID = 'OK. Expected parameter type is valid';
-		const KEY_CONDITION_VALID = 'OK. Condition is valid';
-		const ALL_PARAMETERS_CHECKED = 'The array does not contains unknown parameters';
-
-		// Ошибки
-		const KEY_NOT_EXISTS = 'Expected parameter does not exist in the array of parameters';
-		const CONDITION_IS_UNKNOWN = 'Condition is unknown';
-		const KEY_TYPE_NOT_VALID = 'Expected parameter type is not valid';
-		const KEY_CONDITION_NOT_VALID = 'Condition is not valid';
-		const EXPECTED_NOT_IS_ARRAY = 'Expected not is array';
-		const UNKNOWN_PARAMETERS_LIST = 'Unknown parameters in the input data';
-		const ACTUAL_NOT_IS_ARRAY = 'Actual not is array';
-		const CALLBACK_NOT_CALLABLE = 'Expected value not is callable';
-		const CALLBACK_NOT_VALID = 'Callable method return bad result';
-		const MATCHING_DATA_NOT_ARRAY = 'Incoming data is not an array';
+		/**
+		 * Ключ, который добавится к списку статусов, если возникнет ошибка AMatchStatus::UNKNOWN_PARAMETERS_LIST
+		 */
 		const _UNKNOWN_PARAMETERS_LIST = 'Unknown parameters:';
 
 		/**
@@ -170,11 +156,10 @@
 		protected $_result = null;
 
 		/**
-		 * Комментарий к результату. Статический, чтобы был доступен извне
-		 *
-		 * @var array key=>comment
+		 * Результаты выполнения сопоставлений (ошибки или успешные статусы)
+		 * @var array
 		 */
-		protected $_comment_ar = array();
+		protected $_result_ar = array();
 
 		/**
 		 * Условия, выполнявшиеся на момент комментария
@@ -189,26 +174,46 @@
 		protected $_opposite = false;
 
 		/**
-		 * Пользовательский текст ошибки (переданный извне) на конкретное условие сопоставления
+		 * Пользовательский код (или текст) ошибки (переданный извне) на конкретное условие сопоставления
 		 * @var string
 		 */
-		protected $_user_error_comment = null;
+		protected $_user_error_status = null;
+
+		/**
+		 * Объект, содержащий коды статусов и их расшифровку
+		 * @var AMatchStatus
+		 */
+		protected $_status_obj = null;
 
 		/**
 		 * Можно передать массив актуальных параметров прямо в конструктор
 		 *
 		 * @param bitmask $flags Флаги сопоставления
 		 * @param array $actual_ar
+		 * @param AMatchStatus $statuses_mapping_object Объект-наследник AMatchStatus, переопределяющий комментарии к ошибкам
 		 */
-		public function __construct($actual_ar = array(), $flags = self::NO_FLAGS)
+		public function __construct($actual_ar = array(), $flags = self::NO_FLAGS, $statuses_mapping_object = null)
 		{
 			$this->_flags = $flags;
+			$this->_actual_ar = array();
+			$this->_param_key = 'runMatch';
+
+			// Требуем использовать для маппинга наследник AMatchStatus
+			if (is_object($statuses_mapping_object) && $statuses_mapping_object instanceof AMatchStatus) {
+				$this->_status_obj = $statuses_mapping_object;
+			} else if (is_object($statuses_mapping_object)) {
+				$this->_status_obj = new AMatchStatus();
+				$this->_flags = self::NO_FLAGS;
+				$this->_setFalseResult(AMatchStatus::BAD_STATUSES_CLASS, array(get_class($statuses_mapping_object)));
+			} else {
+				$this->_status_obj = new AMatchStatus();
+			}
 			if (!is_array($actual_ar)) {
-				$this->_param_key = 'runMatch';
-				$this->_setFalseResult(self::MATCHING_DATA_NOT_ARRAY);
-				$this->_actual_ar = array();
+				$this->_flags = self::NO_FLAGS;
+				$this->_setFalseResult(AMatchStatus::MATCHING_DATA_NOT_ARRAY);
 			} else {
 				$this->_actual_ar = $actual_ar;
+				$this->_param_key = null;
 			}
 		}
 
@@ -217,11 +222,12 @@
 		 *
 		 * @param array $actual_ar
 		 * @param bitmask $flags Флаги сопоставления
+		 * @param AMatchStatus $statuses_mapping_object Объект-наследник AMatchStatus, переопределяющий комментарии к ошибкам
 		 * @return AMatch Возвращает объект для использования цепочки вызова
 		 */
-		public static function runMatch($actual_ar, $flags = self::NO_FLAGS)
+		public static function runMatch($actual_ar, $flags = self::NO_FLAGS, $statuses_mapping_object = null)
 		{
-			return new AMatch($actual_ar, $flags);
+			return new AMatch($actual_ar, $flags, $statuses_mapping_object);
 		}
 
 		/**
@@ -239,18 +245,18 @@
 
 				// Регистрируем в списке актуальных параметров для прохождения проверки на неполноту структуры
 				$this->_actual_ar[$this->_param_key] = null;
-				$this->_setTrueResult(self::KEY_NOT_EXISTS_OPTIONAL);
+				$this->_setTrueResult(AMatchStatus::KEY_NOT_EXISTS_OPTIONAL);
 			} else {
-				$this->_setFalseResult(self::KEY_NOT_EXISTS);
+				$this->_setFalseResult(AMatchStatus::KEY_NOT_EXISTS);
 			}
 		}
 
 		/**
 		 * Установить успешный результат условия
-		 * @param string $comment Комментарий к хорошему результату
-		 * @param string $comment Условие на момент комментария к хорошему результату
+		 * @param string $result Комментарий к хорошему результату
+		 * @param string $result Условие на момент комментария к хорошему результату
 		 */
-		protected function _setTrueResult($comment, $comment_conditions = null)
+		protected function _setTrueResult($result, $result_conditions = null)
 		{
 			// Результат правдивый только если ранее не был установлен в другое значение
 			$this->_result = is_null($this->_result) ? true : $this->_result;
@@ -258,13 +264,13 @@
 			// Показывать комментарий к хорошему результату только если включён такой флаг
 			if ($this->_haveFlag(self::FLAG_SHOW_GOOD_COMMENTS)) {
 				// Хороший комментарий присоединяем только если ранее не было любого другого
-				$this->_comment_ar[$this->_param_key] = empty($this->_comment_ar[$this->_param_key])
-					? $comment
-					: $this->_comment_ar[$this->_param_key];
+				$this->_result_ar[$this->_param_key] = empty($this->_result_ar[$this->_param_key])
+					? $result
+					: $this->_result_ar[$this->_param_key];
 				$this->_comment_conditions_ar[$this->_param_key] = empty($this->_comment_conditions_ar[$this->_param_key])
 					? (
-						$comment_conditions
-							? $comment_conditions
+						$result_conditions
+							? $result_conditions
 							: $this->_conditions_ar
 					) : $this->_comment_conditions_ar[$this->_param_key];
 			}
@@ -272,22 +278,22 @@
 
 		/**
 		 * Установить безуспешный результат условия (или успешный, если это опциональный параметр)
-		 * @param string $comment Комментарий к ошибке сопоставления
-		 * * @param string $comment Условие на момент комментария к ошибке сопоставления
+		 * @param string $result Комментарий к ошибке сопоставления
+		 * * @param string $result Условие на момент комментария к ошибке сопоставления
 		 */
-		protected function _setFalseResult($comment, $comment_conditions = null)
+		protected function _setFalseResult($result, $result_conditions = null)
 		{
 			if (array_key_exists($this->_param_key, $this->_params_keys_list_optional)) {
-				$this->_setTrueResult(self::KEY_NOT_EXISTS_OPTIONAL, $comment_conditions);
+				$this->_setTrueResult(AMatchStatus::KEY_NOT_EXISTS_OPTIONAL, $result_conditions);
 			} else {
 				$this->_result = false;
 
 				// Перебиваем ранние комментарии последней ошибкой
-				$this->_comment_ar[$this->_param_key] = empty($this->_user_error_comment)
-					? $comment
-					: $this->_user_error_comment;
-				$this->_comment_conditions_ar[$this->_param_key] = $comment_conditions
-					? $comment_conditions
+				$this->_result_ar[$this->_param_key] = empty($this->_user_error_status)
+					? $result
+					: $this->_user_error_status;
+				$this->_comment_conditions_ar[$this->_param_key] = $result_conditions
+					? $result_conditions
 					: $this->_conditions_ar; // Перебиваем ранние условия для комментариев
 			}
 		}
@@ -304,19 +310,19 @@
 		{
 			if ($opposite) {
 				if (!$with_type && $first != $second) {
-					$this->_setTrueResult(self::KEY_CONDITION_VALID);
+					$this->_setTrueResult(AMatchStatus::KEY_CONDITION_VALID);
 				} elseif ($with_type && $first !== $second) {
-					$this->_setTrueResult(self::KEY_VALID_FULLY);
+					$this->_setTrueResult(AMatchStatus::KEY_VALID_FULLY);
 				} else {
-					$this->_setFalseResult(self::KEY_CONDITION_NOT_VALID);
+					$this->_setFalseResult(AMatchStatus::KEY_CONDITION_NOT_VALID);
 				}
 			} else {
 				if (!$with_type && $first == $second) {
-					$this->_setTrueResult(self::KEY_CONDITION_VALID);
+					$this->_setTrueResult(AMatchStatus::KEY_CONDITION_VALID);
 				} elseif ($with_type && $first === $second) {
-					$this->_setTrueResult(self::KEY_VALID_FULLY);
+					$this->_setTrueResult(AMatchStatus::KEY_VALID_FULLY);
 				} else {
-					$this->_setFalseResult(self::KEY_CONDITION_NOT_VALID);
+					$this->_setFalseResult(AMatchStatus::KEY_CONDITION_NOT_VALID);
 				}
 			}
 		}
@@ -330,12 +336,12 @@
 		protected function _firstIsSmaller($first, $second, $or_equal = false)
 		{
 			if ($first < $second) {
-				$this->_setTrueResult(self::KEY_CONDITION_VALID);
+				$this->_setTrueResult(AMatchStatus::KEY_CONDITION_VALID);
 			} else {
 				if ($or_equal) {
 					$this->_validateTwoValues($first, $second);
 				} else {
-					$this->_setFalseResult(self::KEY_CONDITION_NOT_VALID);
+					$this->_setFalseResult(AMatchStatus::KEY_CONDITION_NOT_VALID);
 				}
 			}
 		}
@@ -349,12 +355,12 @@
 		protected function _firstIsBigger($first, $second, $or_equal = false)
 		{
 			if ($first > $second) {
-				$this->_setTrueResult(self::KEY_CONDITION_VALID);
+				$this->_setTrueResult(AMatchStatus::KEY_CONDITION_VALID);
 			} else {
 				if ($or_equal) {
 					$this->_validateTwoValues($first, $second);
 				} else {
-					$this->_setFalseResult(self::KEY_CONDITION_NOT_VALID);
+					$this->_setFalseResult(AMatchStatus::KEY_CONDITION_NOT_VALID);
 				}
 			}
 		}
@@ -363,31 +369,31 @@
 		 * Сообщить о результате сопоставления типов
 		 * @param bool $bool успех/неуспех
 		 */
-		protected function _typeMsg($bool)
+		protected function _typeMsg($bool, $type)
 		{
 			$bool = ($this->_opposite) ? !$bool : $bool;
 			if ($bool) {
-				$this->_setTrueResult(self::KEY_TYPE_VALID);
+				$this->_setTrueResult(AMatchStatus::KEY_TYPE_VALID);
 			} else {
-				$this->_setFalseResult(self::KEY_TYPE_NOT_VALID);
+				$this->_setFalseResult(AMatchStatus::KEY_TYPE_NOT_VALID, array($type, $type));
 			}
 		}
 
 		/**
 		 * Сообщить о результате сопоставления
 		 * @param bool $bool успех/неуспех
-		 * @param bool $replace_comment Собственный комментарий (из callback-методов, например)
+		 * @param bool $replace_result Собственный комментарий (из callback-методов, например)
 		 * @param bool $replace_comment_conditions Собственные условия к комментариям (из callback-методов, например)
 		 */
-		protected function _conditionMsg($bool, $replace_comment = null, $replace_comment_conditions = null)
+		protected function _conditionMsg($bool, $replace_result = null, $replace_comment_conditions = null)
 		{
 			$bool = ($this->_opposite) ? !$bool : $bool;
 			if ($bool) {
-				$comment = $replace_comment ? $replace_comment : self::KEY_CONDITION_VALID;
-				$this->_setTrueResult($comment, $replace_comment_conditions);
+				$result = $replace_result ? $replace_result : AMatchStatus::KEY_CONDITION_VALID;
+				$this->_setTrueResult($result, $replace_comment_conditions);
 			} else {
-				$comment = $replace_comment ? $replace_comment : self::KEY_CONDITION_NOT_VALID;
-				$this->_setFalseResult($comment, $replace_comment_conditions);
+				$result = $replace_result ? $replace_result : AMatchStatus::KEY_CONDITION_NOT_VALID;
+				$this->_setFalseResult($result, $replace_comment_conditions);
 			}
 		}
 
@@ -446,7 +452,7 @@
 				case 'integer':
 				case 'is_int':
 				case 'is_integer':
-					$this->_typeMsg(is_int($actual));
+					$this->_typeMsg(is_int($actual), $condition);
 					break;
 				case 'long':
 				case 'longint':
@@ -454,6 +460,7 @@
 				case 'is_longint':
 					$this->_typeMsg(
 						(is_string($actual) || is_numeric($actual)) && preg_match('/^-?\d+$/', $actual)
+						, $condition
 					); // большой, длинный, необрезанный
 					break;
 				case 'float':
@@ -463,44 +470,44 @@
 				case 'is_double':
 				case 'real':
 				case 'is_real':
-					$this->_typeMsg(is_float($actual));
+					$this->_typeMsg(is_float($actual), $condition);
 					break;
 				case 'array':
 				case 'is_array':
-					$this->_typeMsg(is_array($actual));
+					$this->_typeMsg(is_array($actual), $condition);
 					break;
 				case 'bool':
 				case 'boolean':
 				case 'is_bool':
 				case 'is_boolean':
-					$this->_typeMsg(is_bool($actual));
+					$this->_typeMsg(is_bool($actual), $condition);
 					break;
 				case 'stringbool':
 				case 'smartbool':
 				case 'is_stringbool':
 				case 'is_smartbool':
 					$valid_bool = array('1', '0', 'true', 'false', true, false, 1, 0);
-					$this->_typeMsg(in_array($actual, $valid_bool, true));
+					$this->_typeMsg(in_array($actual, $valid_bool, true), $condition);
 					break;
 				case 'null':
 				case 'is_null':
-					$this->_typeMsg(is_null($actual));
+					$this->_typeMsg(is_null($actual), $condition);
 					break;
 				case 'numeric':
 				case 'is_numeric':
-					$this->_typeMsg(is_numeric($actual));
+					$this->_typeMsg(is_numeric($actual), $condition);
 					break;
 				case 'scalar':
 				case 'is_scalar':
-					$this->_typeMsg(is_scalar($actual));
+					$this->_typeMsg(is_scalar($actual), $condition);
 					break;
 				case 'string':
 				case 'is_string':
-					$this->_typeMsg(is_string($actual));
+					$this->_typeMsg(is_string($actual), $condition);
 					break;
 				case 'object':
 				case 'is_object':
-					$this->_typeMsg(is_object($actual));
+					$this->_typeMsg(is_object($actual), $condition);
 					break;
 				case 'instance':
 				case 'instanceof':
@@ -515,9 +522,9 @@
 				case 'in_actual_array':
 					if (!is_array($actual)) {
 						if ($this->_opposite) {
-							$this->_setTrueResult(self::KEY_CONDITION_VALID);
+							$this->_setTrueResult(AMatchStatus::KEY_CONDITION_VALID);
 						} else {
-							$this->_setFalseResult(self::ACTUAL_NOT_IS_ARRAY);
+							$this->_setFalseResult(AMatchStatus::ACTUAL_NOT_IS_ARRAY);
 						}
 						break;
 					}
@@ -527,9 +534,9 @@
 				case 'in_expected_array':
 					if (!is_array($expected)) {
 						if ($this->_opposite) {
-							$this->_setTrueResult(self::KEY_CONDITION_VALID);
+							$this->_setTrueResult(AMatchStatus::KEY_CONDITION_VALID);
 						} else {
-							$this->_setFalseResult(self::EXPECTED_NOT_IS_ARRAY);
+							$this->_setFalseResult(AMatchStatus::EXPECTED_NOT_IS_ARRAY);
 						}
 						break;
 					}
@@ -558,7 +565,7 @@
 						$this->_callCallback($expected, $actual);
 					break;
 				default:
-					$this->_setFalseResult(self::CONDITION_IS_UNKNOWN);
+					$this->_setFalseResult(AMatchStatus::CONDITION_IS_UNKNOWN);
 					break;
 			}
 		}
@@ -587,10 +594,10 @@
 				} elseif (is_bool($callback_result)) {
 					$this->_conditionMsg($callback_result);
 				} else {
-					$this->_setFalseResult(self::CALLBACK_NOT_VALID);
+					$this->_setFalseResult(AMatchStatus::CALLBACK_NOT_VALID);
 				}
 			} else {
-				$this->_setFalseResult(self::CALLBACK_NOT_CALLABLE);
+				$this->_setFalseResult(AMatchStatus::CALLBACK_NOT_CALLABLE);
 			}
 		}
 		
@@ -622,7 +629,7 @@
 			}
 
 			if (empty($this->_conditions_ar)) {
-				$this->_setTrueResult(self::KEY_EXISTS);
+				$this->_setTrueResult(AMatchStatus::KEY_EXISTS);
 
 				// Передан один параметр — значит простое сравнение
 			} elseif (count($this->_conditions_ar) == 1) {
@@ -642,7 +649,7 @@
 
 					// Если передано что-то вроде Class::method::wtf
 					if (count($callback) > 2 || empty($callback[0]) || empty($callback[1])) {
-						$this->_setFalseResult(self::CONDITION_IS_UNKNOWN);
+						$this->_setFalseResult(AMatchStatus::CONDITION_IS_UNKNOWN);
 					} else {
 
 						// Пример вызова: ->some($callback_arguments, 'MyClass::myfunc')
@@ -670,10 +677,10 @@
 				$diff = array_diff($actual_ar_keys, $params_keys_list); // Получаем ключи, присутствующие только в проверяемом массиве, но не имеющие условий валидации (избыточные)
 				$this->_param_key = __FUNCTION__;
 				if (empty($diff)) {
-					$this->_setTrueResult(self::ALL_PARAMETERS_CHECKED);
+					$this->_setTrueResult(AMatchStatus::ALL_PARAMETERS_CHECKED);
 				} else {
-					$this->_setFalseResult(self::UNKNOWN_PARAMETERS_LIST);
-					$this->_param_key = self::_UNKNOWN_PARAMETERS_LIST;
+					$this->_setFalseResult(AMatchStatus::UNKNOWN_PARAMETERS_LIST);
+					$this->_param_key = AMatch::_UNKNOWN_PARAMETERS_LIST;
 					$this->_setFalseResult(implode("," , $diff));
 				}
 			}
@@ -682,14 +689,28 @@
 		}
 
 		/**
+		 * Вернуть результаты выполнения сопоставлений
+		 *
+		 * @return string
+		 */
+		public function matchResults()
+		{
+		
+			return $this->_result_ar;
+		}
+		/**
 		 * Вернуть комментарий к результату
 		 *
 		 * @return string
 		 */
 		public function matchComments()
 		{
-		
-			return $this->_comment_ar;
+			$comments_ar = array();
+			foreach ($this->_result_ar as $key => $status_code) {
+				$comments_ar[$key] = $this->_status_obj->getComment($status_code);
+			}
+
+			return $comments_ar;
 		}
 
 		/**
@@ -711,7 +732,7 @@
 			$this->_param_key = $param_key;
 			$this->_params_keys_list[$param_key] = $param_key;
 			$this->_conditions_ar = $conditions_ar;
-			$this->_user_error_comment = array_key_exists(2, $this->_conditions_ar) ? $this->_conditions_ar[2] : null;
+			$this->_user_error_status = array_key_exists(2, $this->_conditions_ar) ? $this->_conditions_ar[2] : null;
 
 			// Если в одном из предыдущих звеньях цепочки условие не было выполнено,
 			// не анализируем следующие условия

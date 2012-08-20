@@ -3,16 +3,12 @@
 	 * callback-методы для валидации строк
 	 *
 	 * @package AMatch
-	 * @author KIVagant
+	 * @author KIVagant <KIVagant@gmail.com>
 	 * @see AMatch
 	 */
 	class AMatchString
 	{
 		protected static $_encoding = 'UTF-8';
-		const STRING_TOO_SHORT = 'String is too short';
-		const STRING_TOO_LONG = 'String is too long';
-		const REGEXP_FAILURE = 'The string does not match the regular expression';
-		const STRING_IS_NOT_EMAIL = 'Incorrect email';
 
 		/**
 		 * Поменять кодировку по-умолчанию
@@ -34,7 +30,7 @@
 		{
 			$length = mb_strlen($actual, self::$_encoding);
 			$result = $length <= $max_length;
-			$comments = $result ? null : self::STRING_TOO_LONG;
+			$comments = $result ? null : AMatchStatus::STRING_TOO_LONG;
 			$comments_conditions = array($max_length, __METHOD__);
 
 			return array($result, $comments, $comments_conditions);
@@ -51,7 +47,7 @@
 		{
 			$length = mb_strlen($actual, self::$_encoding);
 			$result = $length >= $min_length;
-			$comments = $result ? null : self::STRING_TOO_SHORT;
+			$comments = $result ? null : AMatchStatus::STRING_TOO_SHORT;
 			$comments_conditions = array($min_length, __METHOD__);
 
 			return array($result, $comments, $comments_conditions);
@@ -72,8 +68,8 @@
 				? null
 				: (
 					$length < $expected_length
-						? self::STRING_TOO_SHORT
-						: self::STRING_TOO_LONG
+						? AMatchStatus::STRING_TOO_SHORT
+						: AMatchStatus::STRING_TOO_LONG
 				)
 			;
 			$comments_conditions = array($expected_length, __METHOD__);
@@ -92,7 +88,7 @@
 		public static function pregMatch($actual, $param_name, $regexp)
 		{
 			$result = is_string($actual) && preg_match($regexp, $actual);
-			$comments = $result ? null : self::REGEXP_FAILURE;
+			$comments = $result ? null : AMatchStatus::REGEXP_FAILURE;
 			$comments_conditions = array($regexp, __METHOD__);
 		
 			return array($result, $comments, $comments_conditions);
@@ -113,7 +109,7 @@
 			} else {
 				$result = is_string($actual) && preg_match($regexp, $actual);
 			}
-			$comments = $result ? null : self::STRING_IS_NOT_EMAIL;
+			$comments = $result ? null : AMatchStatus::STRING_IS_NOT_EMAIL;
 			$comments_conditions = array($actual, __METHOD__);
 		
 			return array($result, $comments, $comments_conditions);
