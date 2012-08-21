@@ -470,7 +470,7 @@
 				case 'is_double':
 				case 'real':
 				case 'is_real':
-					$this->_typeMsg(is_float($actual), $condition);
+					$this->_typeMsg($this->_isTrueFloat($actual), $condition);
 					break;
 				case 'array':
 				case 'is_array':
@@ -598,7 +598,7 @@
 					}
 				}
 			}
-			
+
 			if (is_callable($callable)) {
 				$callback_result = call_user_func($callable, $actual, $this->_param_key, $additional_params);
 				if (is_array($callback_result) && count($callback_result) <= 3) { // (bool, comments, comment_conditions)
@@ -770,5 +770,17 @@
 		protected function _haveFlag($flag)
 		{
 			return ($this->_flags & $flag) > 0;
+		}
+
+		/**
+		 * Является ли значение — float
+		 * @param mixed $val
+		 * @link http://ua.php.net/manual/en/function.is-float.php#107917
+		 * @return bool
+		 */
+		protected function _isTrueFloat($val)
+		{
+
+			return ( is_float($val) || ( (float) $val > (int) $val || strlen($val) != strlen( (int) $val) ) && (ceil($val)) != 0 );
 		}
 	}
