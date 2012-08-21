@@ -260,6 +260,7 @@
 				array('13213.032468e-13465', true),
 				array('-8E+3', true),
 				array('-1354.98879e+37436', true),
+				array('-1.2343E+14', true),
 
 				//
 				array(false, false),
@@ -279,6 +280,8 @@
 				array('e2', false),
 				array('8e', false),
 				array('3,25', false),
+				array('1.1.1', false),
+				array('1111.11.1111E1', false),
 			);
 		}
 		public function testTypesNotValid()

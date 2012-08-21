@@ -780,7 +780,7 @@
 		 */
 		protected function _isTrueFloat($val)
 		{
-			$pattern = '/^[-+]?(((\d+)\.?(\d+)?)|\.\d+)+([eE]?[+-]?\d+)?$/';
+			$pattern = '/^[-+]?(((\d+)\.?(\d+)?)|\.\d+)([eE]?[+-]?\d+)?$/';
 
 			return (!is_bool($val) && (is_float($val) || preg_match($pattern, trim($val))));
 		}
