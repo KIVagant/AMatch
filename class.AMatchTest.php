@@ -205,6 +205,81 @@
 			$this->assertEquals($expected_ar, $result->matchResults());
 		}
 
+		/**
+		 * Проверка типа данных "float"
+		 * @param mixed $float Проверяемое значение
+		 * @param bool $expected_result Ожидаемый результат
+		 * @dataProvider _floatDataProvider
+		 */
+		public function testFloatType($float, $expected_result)
+		{
+			$validate_ar = array('float' => $float);
+			$result = AMatch::runMatch($validate_ar, AMatch::FLAG_SHOW_GOOD_COMMENTS)
+				->float('', 'float');
+
+			if ($expected_result) {
+				$expected_ar = array(
+					'float' => AMatchStatus::KEY_TYPE_VALID,
+				);
+				$this->assertTrue($result->stopMatch());
+			} else {
+				$expected_ar = array(
+				'float' => AMatchStatus::KEY_TYPE_NOT_VALID,
+				);
+				$this->assertFalse($result->stopMatch());
+			}
+			$this->assertEquals($expected_ar, $result->matchResults());
+		}
+
+		public static function _floatDataProvider()
+		{
+			return array(
+				array(1, true),
+				array(-1, true),
+				array(1.0, true),
+				array(-1.0, true),
+				array('1', true),
+				array('-1', true),
+				array('1.0', true),
+				array('-1.0', true),
+				array('2.1', true),
+				array('0', true),
+				array(0, true),
+				array(' 0 ', true),
+				array(' 0.1 ', true),
+				array(' -0.0 ', true),
+				array(-0.0, true),
+				array(3., true),
+				array('-3.', true),
+				array('.27', true),
+				array(.27, true),
+				array('-0', true),
+				array('+4', true),
+				array('1e2', true),
+				array('+1353.0316547', true),
+				array('13213.032468e-13465', true),
+				array('-8E+3', true),
+				array('-1354.98879e+37436', true),
+
+				//
+				array(false, false),
+				array(true, false),
+				array('', false),
+				array('-', false),
+				array('.a', false),
+				array('-1.a', false),
+				array('.a', false),
+				array('.', false),
+				array('-.', false),
+				array('1+', false),
+				array('1.3+', false),
+				array('a1', false),
+				array('e.e', false),
+				array('-e-4', false),
+				array('e2', false),
+				array('8e', false),
+			);
+		}
 		public function testTypesNotValid()
 		{
 			$result = AMatch::runMatch(AMatchTest::$actual_params)->doc_id(false, 'string');
@@ -508,7 +583,7 @@
 			->data('key2', 'key_exists') // true Существование ключа
 			->data('key1', '!key_exists') // false Требование отсутствие ключа
 			->data('key15', 'key_exists') // false Существование ключа
-			->parent_id('', 'is_float') // false Требуется float
+			->parent_id('', 'is_array') // true Инт тоже считается float
 			->something(AMatch::OPTIONAL) // Необязательный параметр в конце условий (ошибка перебивания результата на true)
 			;
 			
@@ -531,7 +606,7 @@
 				'missed_key' => array('', 'is_array'),
 				'empty_key' => array(true),
 				'data' => array('key15', 'key_exists'),
-				'parent_id' => array('is_float', 'is_float'),
+				'parent_id' => array('is_array', 'is_array'),
 				'something' => array(AMatch::OPTIONAL),
 				'stopMatch' => array(),
 				AMatch::_UNKNOWN_PARAMETERS_LIST => array()

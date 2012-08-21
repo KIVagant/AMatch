@@ -773,14 +773,15 @@
 		}
 
 		/**
-		 * Является ли значение — float
+		 * Является ли значение — float (в том числе допустимы integer & 0)
 		 * @param mixed $val
 		 * @link http://ua.php.net/manual/en/function.is-float.php#107917
 		 * @return bool
 		 */
 		protected function _isTrueFloat($val)
 		{
+			$pattern = '/^[-+]?(((\d+)\.?(\d+)?)|\.\d+)+([eE]?[+-]?\d+)?$/';
 
-			return ( is_float($val) || ( (float) $val > (int) $val || strlen($val) != strlen( (int) $val) ) && (ceil($val)) != 0 );
+			return (!is_bool($val) && (is_float($val) || preg_match($pattern, trim($val))));
 		}
 	}
