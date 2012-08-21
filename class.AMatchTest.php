@@ -278,6 +278,7 @@
 				array('-e-4', false),
 				array('e2', false),
 				array('8e', false),
+				array('3,25', false),
 			);
 		}
 		public function testTypesNotValid()
