@@ -28,6 +28,7 @@
 		 */
 		public static function maxLength($actual, $param_name, $max_length = null)
 		{
+			$actual = (string)$actual;
 			$length = mb_strlen($actual, self::$_encoding);
 			$result = $length <= $max_length;
 			$comments = $result ? null : AMatchStatus::STRING_TOO_LONG;
@@ -45,6 +46,7 @@
 		 */
 		public static function minLength($actual, $param_name, $min_length = null)
 		{
+			$actual = (string)$actual;
 			$length = mb_strlen($actual, self::$_encoding);
 			$result = $length >= $min_length;
 			$comments = $result ? null : AMatchStatus::STRING_TOO_SHORT;
@@ -62,6 +64,7 @@
 		 */
 		public static function length($actual, $param_name, $expected_length = null)
 		{
+			$actual = (string)$actual;
 			$length = mb_strlen($actual, self::$_encoding);
 			$result = $length == $expected_length;
 			$comments = $result
