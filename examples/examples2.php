@@ -4,7 +4,7 @@
  * @package AMatch
  * @author KIVagant
  * @see AMatch
- * @link http://habrahabr.ru/post/149114/
+ * @link http://habrahabr.ru/post/150039/
  */
 
 $params = array(
