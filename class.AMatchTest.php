@@ -770,6 +770,9 @@
 				array( array('integers' => array(0.33)), 'integers', 'AMatchArray::onlyIntegerValues', '', false, array('integers' => AMatchStatus::ARRAY_OF_INTS_REQUIRED)),
 				array( array('user' => 'aaa@.com'), 'user', 'AMatchString::isEmail', '', false, array('user' => AMatchStatus::STRING_IS_NOT_EMAIL)),
 				array( array('int' => '1.123'), 'int', 'AMatchString::pregMatch', '/^-?\d+$/', false, array('int' => AMatchStatus::REGEXP_FAILURE)),
+				array( array('badstr' => new stdClass()), 'badstr', 'AMatchString::length', 10, false, array('badstr' => AMatchStatus::ACTUAL_IS_NOT_STRING)),
+				array( array('badstr' => new stdClass()), 'badstr', 'AMatchString::minLength', 10, false, array('badstr' => AMatchStatus::ACTUAL_IS_NOT_STRING)),
+				array( array('badstr' => new stdClass()), 'badstr', 'AMatchString::maxLength', 10, false, array('badstr' => AMatchStatus::ACTUAL_IS_NOT_STRING)),
 			);
 		}
 

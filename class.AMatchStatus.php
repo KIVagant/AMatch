@@ -40,6 +40,7 @@
 		const STRING_TOO_LONG = 'str2';
 		const REGEXP_FAILURE = 'str3';
 		const STRING_IS_NOT_EMAIL = 'str4';
+		const ACTUAL_IS_NOT_STRING = 'str5';
 		
 		// AMatchArray
 		const ACTUAL_IS_NOT_ARRAY = 'arr1';
@@ -99,9 +100,10 @@
 			$this->_result_comments[self::STRING_TOO_LONG] = 'String is too long';
 			$this->_result_comments[self::REGEXP_FAILURE] = 'The string does not match the regular expression';
 			$this->_result_comments[self::STRING_IS_NOT_EMAIL] = 'Incorrect email';
+			$this->_result_comments[self::ACTUAL_IS_NOT_STRING] = 'String required';
 
 			// AMatchArray
-			$this->_result_comments[self::ACTUAL_IS_NOT_ARRAY] = 'Array needed';
+			$this->_result_comments[self::ACTUAL_IS_NOT_ARRAY] = 'Array required';
 			$this->_result_comments[self::ARRAY_OF_INTS_REQUIRED] = 'The array must contain only items of type integer';
 			$this->_result_comments[self::EMPTY_ARRAY_CLASSIC] = 'Array must be empty';
 			$this->_result_comments[self::EMPTY_ARRAY_FIRST_ELEMENT] = 'The array must be empty or contain a one empty element';

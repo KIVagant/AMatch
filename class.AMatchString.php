@@ -28,10 +28,14 @@
 		 */
 		public static function maxLength($actual, $param_name, $max_length = null)
 		{
-			$actual = (string)$actual;
-			$length = mb_strlen($actual, self::$_encoding);
-			$result = $length <= $max_length;
-			$comments = $result ? null : AMatchStatus::STRING_TOO_LONG;
+			if (is_string($actual)) {
+				$length = mb_strlen($actual, self::$_encoding);
+				$result = $length <= $max_length;
+				$comments = $result ? null : AMatchStatus::STRING_TOO_LONG;
+			} else {
+				$result = false;
+				$comments = AMatchStatus::ACTUAL_IS_NOT_STRING;
+			}
 			$comments_conditions = array($max_length, __METHOD__);
 
 			return array($result, $comments, $comments_conditions);
@@ -46,10 +50,14 @@
 		 */
 		public static function minLength($actual, $param_name, $min_length = null)
 		{
-			$actual = (string)$actual;
-			$length = mb_strlen($actual, self::$_encoding);
-			$result = $length >= $min_length;
-			$comments = $result ? null : AMatchStatus::STRING_TOO_SHORT;
+			if (is_string($actual)) {
+				$length = mb_strlen($actual, self::$_encoding);
+				$result = $length >= $min_length;
+				$comments = $result ? null : AMatchStatus::STRING_TOO_SHORT;
+			} else {
+				$result = false;
+				$comments = AMatchStatus::ACTUAL_IS_NOT_STRING;
+			}
 			$comments_conditions = array($min_length, __METHOD__);
 
 			return array($result, $comments, $comments_conditions);
@@ -64,17 +72,21 @@
 		 */
 		public static function length($actual, $param_name, $expected_length = null)
 		{
-			$actual = (string)$actual;
-			$length = mb_strlen($actual, self::$_encoding);
-			$result = $length == $expected_length;
-			$comments = $result
-				? null
-				: (
-					$length < $expected_length
-						? AMatchStatus::STRING_TOO_SHORT
-						: AMatchStatus::STRING_TOO_LONG
-				)
-			;
+			if (is_string($actual)) {
+				$length = mb_strlen($actual, self::$_encoding);
+				$result = $length == $expected_length;
+				$comments = $result
+					? null
+					: (
+						$length < $expected_length
+							? AMatchStatus::STRING_TOO_SHORT
+							: AMatchStatus::STRING_TOO_LONG
+					)
+				;
+			} else {
+				$result = false;
+				$comments = AMatchStatus::ACTUAL_IS_NOT_STRING;
+			}
 			$comments_conditions = array($expected_length, __METHOD__);
 		
 			return array($result, $comments, $comments_conditions);
