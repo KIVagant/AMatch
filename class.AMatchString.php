@@ -102,7 +102,7 @@
 		 */
 		public static function pregMatch($actual, $param_name, $regexp)
 		{
-			$result = is_string($actual) && preg_match($regexp, $actual);
+			$result = (is_numeric($actual) || is_string($actual)) && preg_match($regexp, $actual);
 			$comments = $result ? null : AMatchStatus::REGEXP_FAILURE;
 			$comments_conditions = array($regexp, __METHOD__);
 		
