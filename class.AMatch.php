@@ -664,9 +664,13 @@
 					$this->_validateTwoValues($expected, $actual, $with_type, $this->_opposite);
 
 				// Extended callback
-				} elseif (strstr($condition, '->') !== false || strstr($condition, '::') !== false) {
+				} elseif (
+					is_string($condition)
+						&& (strstr($condition, '->') !== false || strstr($condition, '::') !== false)
+					|| is_array($condition) && is_callable($condition)
+				) {
 
-					// Пример вызова: ->some($callback_arguments, 'MyClass::myfunc')->some($callback_arguments, 'MyClass->myfunc')
+					// Пример вызова: ->some($callback_arguments, 'MyClass::myfunc')->some($callback_arguments, 'MyClass->myfunc')->some($callback_arguments, array($this, 'myFunc'))
 					$this->_callCallback($condition, $actual, $expected);
 				} else {
 					$this->_conditionValidate($condition, $expected, $actual);

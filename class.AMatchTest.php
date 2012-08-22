@@ -667,6 +667,7 @@
 			$flags = AMatch::FLAG_SHOW_GOOD_COMMENTS | AMatch::FLAG_DONT_STOP_MATCHING;
 			$result = AMatch::runMatch(AMatchTest::$actual_params, $flags)
 			->data(array($this, '_callbackMethod'), 'callback') // true
+			->data('', array($this, '_callbackMethod')) // true
 			->subject_id(array($this, '_callbackMethod'), 'callback'); // false
 
 			$expected_ar = array(
@@ -744,6 +745,7 @@
 				array(self::$actual_params, 'title', 'AMatchString::maxLength', 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
 				array(self::$actual_params, 'title', 'AMatchString::length', 16, false, array('title' => AMatchStatus::STRING_TOO_SHORT)),
 				array(self::$actual_params, 'title', 'AMatchString::length', 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
+				array(self::$actual_params, 'title', array('AMatchString', 'length'), 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
 			
 				//
 				array( array('classic' => array()), 'classic', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_CLASSIC, true),
