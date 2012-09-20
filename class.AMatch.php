@@ -785,6 +785,7 @@
 		protected function _isTrueFloat($val)
 		{
 			$pattern = '/^[-+]?(((\d+)\.?(\d+)?)|\.\d+)([eE]?[+-]?\d+)?$/';
+			/*@TODO: $pattern = '/^[-+]?(?>\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/'; — test speed difference*/
 
 			return (!is_bool($val) && (is_float($val) || preg_match($pattern, trim($val))));
 		}

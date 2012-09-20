@@ -157,4 +157,38 @@
 
 			return array($result, $comments, $comments_conditions);
 		}
+
+		/**
+		 * Массив должен содержать ключи только с типом int (longint) или быть пустым
+		 *
+		 * @todo Добавить флаги последовательностей
+		 * @param array $actual Актуальное значение
+		 * @param string $param_name Имя анализируемого параметра, отправленного в callback
+		 * @return array [result|comments]
+		 */
+		public static function onlyIntegerKeys($actual, $param_name)
+		{
+			$result = true;
+			$bad_key = $bad_value = null;
+			if (is_array($actual)) {
+				foreach ($actual as $k => $v) {
+					if (!((is_string($k) || is_numeric($k)) && preg_match('/^-?\d+$/', $k))) {
+						$bad_key = $k;
+						$bad_value = $v;
+						$result = false;
+						break;
+					}
+				}
+				$comments = $result ? null : AMatchStatus::ARRAY_OF_INTS_REQUIRED;
+				$comments_conditions = $bad_key
+				? array($bad_key . '=>' . $bad_value, __METHOD__)
+				: array(null, __METHOD__);
+			} else {
+				$result = false;
+				$comments = AMatchStatus::KEY_TYPE_NOT_VALID;
+				$comments_conditions = array('array', __METHOD__);
+			}
+
+			return array($result, $comments, $comments_conditions);
+		}
 	}

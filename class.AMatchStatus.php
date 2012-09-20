@@ -45,6 +45,7 @@
 		// AMatchArray
 		const ACTUAL_IS_NOT_ARRAY = 'arr1';
 		const ARRAY_OF_INTS_REQUIRED = 'arr2';
+		const ARRAY_OF_INTS_KEYS_REQUIRED = 'arr9';
 
 		const EMPTY_ARRAY_CLASSIC = 'arr3';
 		const EMPTY_ARRAY_FIRST_ELEMENT = 'arr4';
@@ -105,6 +106,7 @@
 			// AMatchArray
 			$this->_result_comments[self::ACTUAL_IS_NOT_ARRAY] = 'Array required';
 			$this->_result_comments[self::ARRAY_OF_INTS_REQUIRED] = 'The array must contain only items of type integer';
+			$this->_result_comments[self::ARRAY_OF_INTS_KEYS_REQUIRED] = 'The array must contain only keys of type integer';
 			$this->_result_comments[self::EMPTY_ARRAY_CLASSIC] = 'Array must be empty';
 			$this->_result_comments[self::EMPTY_ARRAY_FIRST_ELEMENT] = 'The array must be empty or contain a one empty element';
 			$this->_result_comments[self::EMPTY_ARRAY_SOME_ELEMENT] = 'All elements in array must be empty';
