@@ -179,7 +179,7 @@
 						break;
 					}
 				}
-				$comments = $result ? null : AMatchStatus::ARRAY_OF_INTS_REQUIRED;
+				$comments = $result ? null : AMatchStatus::ARRAY_OF_INTS_KEYS_REQUIRED;
 				$comments_conditions = $bad_key
 				? array($bad_key . '=>' . $bad_value, __METHOD__)
 				: array(null, __METHOD__);

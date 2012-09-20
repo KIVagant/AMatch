@@ -757,6 +757,7 @@
 				array( array('some' => array()), 'some', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_SOME_ELEMENT, true),
 				array( array('some' => array(0, array(0, array(0)))), 'some', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_SOME_ELEMENT, true),
 				array( array('integers' => array(0, '1234', '-213', -432, '-12314924312341324132412341234123')), 'integers', 'AMatchArray::onlyIntegerValues', '', true),
+				array( array('integers' => array(0, 'a', 'b', -432 => 0, '-12314924312341324132412341234123' => 1)), 'integers', 'AMatchArray::onlyIntegerKeys', '', true),
 				array( array('user' => 'some.user_check@i.ua'), 'user', 'AMatchString::isEmail', '', true),
 				array( array('int' => '-12342451235345124351234124'), 'int', 'AMatchString::pregMatch', '/^-?\d+$/', true),
 
@@ -770,6 +771,7 @@
 				array( array('integers' => array(0, '1234', '-213', -432, '- 12314924312341324132412341234123')), 'integers', 'AMatchArray::onlyIntegerValues', '', false, array('integers' => AMatchStatus::ARRAY_OF_INTS_REQUIRED)),
 				array( array('integers' => array('0.12')), 'integers', 'AMatchArray::onlyIntegerValues', '', false, array('integers' => AMatchStatus::ARRAY_OF_INTS_REQUIRED)),
 				array( array('integers' => array(0.33)), 'integers', 'AMatchArray::onlyIntegerValues', '', false, array('integers' => AMatchStatus::ARRAY_OF_INTS_REQUIRED)),
+				array( array('integers' => array('a' => 1, 2)), 'integers', 'AMatchArray::onlyIntegerKeys', '', false, array('integers' => AMatchStatus::ARRAY_OF_INTS_KEYS_REQUIRED)),
 				array( array('user' => 'aaa@.com'), 'user', 'AMatchString::isEmail', '', false, array('user' => AMatchStatus::STRING_IS_NOT_EMAIL)),
 				array( array('int' => '1.123'), 'int', 'AMatchString::pregMatch', '/^-?\d+$/', false, array('int' => AMatchStatus::REGEXP_FAILURE)),
 				array( array('badstr' => new stdClass()), 'badstr', 'AMatchString::length', 10, false, array('badstr' => AMatchStatus::ACTUAL_IS_NOT_STRING)),
