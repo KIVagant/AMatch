@@ -69,7 +69,7 @@
 		/**
 		 * Ключ, который добавится к списку статусов, если возникнет ошибка AMatchStatus::UNKNOWN_PARAMETERS_LIST
 		 */
-		const _UNKNOWN_PARAMETERS_LIST = 'Unknown parameters:';
+		const _UNKNOWN_PARAMETERS_LIST = 'Unknown parameters';
 
 		/**
 		 * Ожидаемое значение, означающее, что проверяемый параметр не обязателен
