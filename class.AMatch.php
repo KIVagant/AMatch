@@ -702,7 +702,7 @@
 				}
 			}
 
-			return $this->_result;
+			return ($this->_result === null) ? true : $this->_result; // Ни одного условия не определено, следовательно массив считается корректным
 		}
 
 		/**
