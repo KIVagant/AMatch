@@ -189,10 +189,10 @@
 		 * Можно передать массив актуальных параметров прямо в конструктор
 		 *
 		 * @param bitmask $flags Флаги сопоставления
-		 * @param array $actual_ar
+		 * @param array $actual_ar link
 		 * @param AMatchStatus $statuses_mapping_object Объект-наследник AMatchStatus, переопределяющий комментарии к ошибкам
 		 */
-		public function __construct($actual_ar = array(), $flags = self::NO_FLAGS, $statuses_mapping_object = null)
+		public function __construct(&$actual_ar = array(), $flags = self::NO_FLAGS, $statuses_mapping_object = null)
 		{
 			$this->_flags = $flags;
 			$this->_actual_ar = array();
@@ -212,7 +212,7 @@
 				$this->_flags = self::NO_FLAGS;
 				$this->_setFalseResult(AMatchStatus::MATCHING_DATA_NOT_ARRAY);
 			} else {
-				$this->_actual_ar = $actual_ar;
+				$this->_actual_ar = &$actual_ar;
 				$this->_param_key = null;
 			}
 		}
@@ -225,7 +225,7 @@
 		 * @param AMatchStatus $statuses_mapping_object Объект-наследник AMatchStatus, переопределяющий комментарии к ошибкам
 		 * @return AMatch Возвращает объект для использования цепочки вызова
 		 */
-		public static function runMatch($actual_ar, $flags = self::NO_FLAGS, $statuses_mapping_object = null)
+		public static function runMatch(&$actual_ar, $flags = self::NO_FLAGS, $statuses_mapping_object = null)
 		{
 			return new AMatch($actual_ar, $flags, $statuses_mapping_object);
 		}
