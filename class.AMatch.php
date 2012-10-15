@@ -459,7 +459,7 @@
 				case 'is_long':
 				case 'is_longint':
 					$this->_typeMsg(
-						(is_string($actual) || is_numeric($actual)) && preg_match('/^-?\d+$/', $actual)
+						(is_numeric($actual) || is_string($actual)) && preg_match('/^-?\d+$/', $actual)
 						, $condition
 					); // большой, длинный, необрезанный
 					break;
@@ -702,7 +702,7 @@
 				}
 			}
 
-			return $this->_result;
+			return ($this->_result === null) ? true : $this->_result; // Ни одного условия не определено, следовательно массив считается корректным
 		}
 
 		/**

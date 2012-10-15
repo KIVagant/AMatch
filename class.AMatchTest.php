@@ -302,6 +302,14 @@
 			$this->assertEquals($expected_ar, $result->matchResults());
 
 			//
+			$result = AMatch::runMatch(AMatchTest::$actual_params)->title(false, 'longint');
+			$expected_ar = array(
+				'title' => AMatchStatus::KEY_TYPE_NOT_VALID,
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchResults());
+
+			//
 			$result = AMatch::runMatch(AMatchTest::$actual_params)->data(false, 'object');
 			$expected_ar = array(
 				'data' => AMatchStatus::KEY_TYPE_NOT_VALID,
