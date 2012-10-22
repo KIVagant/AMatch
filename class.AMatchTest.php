@@ -50,7 +50,8 @@
 		
 		public function testNotArray()
 		{
-			$result = AMatch::runMatch('bad input data')->doc_id('', 'fukaka');
+			$str = 'bad input data';
+			$result = AMatch::runMatch($str)->doc_id('', 'fukaka');
 			$this->assertFalse($result->stopMatch());
 			$this->assertEquals(array(
 			'runMatch' => AMatchStatus::MATCHING_DATA_NOT_ARRAY
