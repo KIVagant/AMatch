@@ -32,7 +32,8 @@
 		 * Набор параметров, отправляемых на анализ
 		 * @var array
 		 */
-		public static $actual_params = array(
+		public static $actual_params = array();
+		public static $actual_params_orig = array(
 			'doc_id' => 133,
 			'subject_id' => '64',
 			'parent_id' => 32,
@@ -47,7 +48,14 @@
 				'key4' => false,
 			),
 		);
-		
+
+		public function setUp()
+		{
+			parent::setUp();
+
+			AMatchTest::$actual_params = AMatchTest::$actual_params_orig;
+		}
+
 		public function testNotArray()
 		{
 			$str = 'bad input data';
@@ -398,8 +406,10 @@
 		}
 		public function testInstanceOf()
 		{
-			$actual_obj = new AMatch(array());
-			$result = AMatch::runMatch(array('my_obj' => $actual_obj), AMatch::FLAG_SHOW_GOOD_COMMENTS)
+			$params = array();
+			$actual_obj = new AMatch($params);
+			$params_2 = array('my_obj' => $actual_obj);
+			$result = AMatch::runMatch($params_2, AMatch::FLAG_SHOW_GOOD_COMMENTS)
 				->my_obj('AMatch', 'instanceof');
 			$expected_ar = array(
 				'my_obj' => AMatchStatus::KEY_CONDITION_VALID,
@@ -570,7 +580,8 @@
 			$this->assertFalse($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchResults());
 
-			$result = AMatch::runMatch(array('a' => 1, 'b' => null), AMatch::FLAG_STRICT_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS)
+			$params = array('a' => 1, 'b' => null);
+			$result = AMatch::runMatch($params, AMatch::FLAG_STRICT_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS)
 			->a(true)
 			->b(false)
 			;
@@ -747,14 +758,14 @@
 		public static function _pluginsDataProvider()
 		{
 			return array(
-				array(self::$actual_params, 'title', 'AMatchString->minLength', 15, true), // Можно вызывать через ->
-				array(self::$actual_params, 'title', 'AMatchString::maxLength', 15, true),
-				array(self::$actual_params, 'title', 'AMatchString::length', 15, true),
-				array(self::$actual_params, 'title', 'AMatchString::minLength', 16, false, array('title' => AMatchStatus::STRING_TOO_SHORT)),
-				array(self::$actual_params, 'title', 'AMatchString::maxLength', 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
-				array(self::$actual_params, 'title', 'AMatchString::length', 16, false, array('title' => AMatchStatus::STRING_TOO_SHORT)),
-				array(self::$actual_params, 'title', 'AMatchString::length', 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
-				array(self::$actual_params, 'title', array('AMatchString', 'length'), 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
+				array(self::$actual_params_orig, 'title', 'AMatchString->minLength', 15, true), // Можно вызывать через ->
+				array(self::$actual_params_orig, 'title', 'AMatchString::maxLength', 15, true),
+				array(self::$actual_params_orig, 'title', 'AMatchString::length', 15, true),
+				array(self::$actual_params_orig, 'title', 'AMatchString::minLength', 16, false, array('title' => AMatchStatus::STRING_TOO_SHORT)),
+				array(self::$actual_params_orig, 'title', 'AMatchString::maxLength', 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
+				array(self::$actual_params_orig, 'title', 'AMatchString::length', 16, false, array('title' => AMatchStatus::STRING_TOO_SHORT)),
+				array(self::$actual_params_orig, 'title', 'AMatchString::length', 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
+				array(self::$actual_params_orig, 'title', array('AMatchString', 'length'), 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
 			
 				//
 				array( array('classic' => array()), 'classic', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_CLASSIC, true),
