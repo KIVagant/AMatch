@@ -242,9 +242,6 @@
 
 				// Регистрируем в списке опциональных параметров
 				$this->_params_keys_list_optional[$this->_param_key] = $this->_param_key;
-
-				// Регистрируем в списке актуальных параметров для прохождения проверки на неполноту структуры
-				$this->_actual_ar[$this->_param_key] = null;
 				$this->_setTrueResult(AMatchStatus::KEY_NOT_EXISTS_OPTIONAL);
 			} else {
 				$this->_setFalseResult(AMatchStatus::KEY_NOT_EXISTS);
