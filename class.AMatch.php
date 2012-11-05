@@ -113,6 +113,14 @@
 		const FLAG_SHOW_GOOD_COMMENTS = 4;
 
 		/**
+		 * Удалять из проверяемого массива ключи, не объявленные для сопоставления.
+		 * Только вместе с FLAG_DONT_STOP_MATCHING
+		 * Уникальная степень двойки для битмаски.
+		 * @var integer
+		 */
+		const FLAG_FILTER_STRUCTURE = 8;
+
+		/**
 		 * Флаги, установленные для сопоставления массива (битовая маска)
 		 * @var bitmask
 		 */
@@ -684,7 +692,7 @@
 			// Проверка на ограниченность структуры
 			if (
 				($this->_result === true || $this->_haveFlag(self::FLAG_DONT_STOP_MATCHING))
-				&& $this->_haveFlag(self::FLAG_STRICT_STRUCTURE)
+				&& ($this->_haveFlag(self::FLAG_STRICT_STRUCTURE) || $this->_haveFlag(self::FLAG_FILTER_STRUCTURE))
 			) {
 				$actual_ar_keys = array_keys((array)$this->_actual_ar); // Массив присланных параметров
 				$params_keys_list = array_keys($this->_params_keys_list); // Получаем уникальный нумерованный массив обработанных ранее ключей
@@ -693,9 +701,15 @@
 				if (empty($diff)) {
 					$this->_setTrueResult(AMatchStatus::ALL_PARAMETERS_CHECKED);
 				} else {
-					$this->_setFalseResult(AMatchStatus::UNKNOWN_PARAMETERS_LIST);
-					$this->_param_key = AMatch::_UNKNOWN_PARAMETERS_LIST;
-					$this->_setFalseResult(implode("," , $diff));
+					if ($this->_haveFlag(self::FLAG_STRICT_STRUCTURE)) {
+						$this->_setFalseResult(AMatchStatus::UNKNOWN_PARAMETERS_LIST);
+						$this->_param_key = AMatch::_UNKNOWN_PARAMETERS_LIST;
+						$this->_setFalseResult(implode("," , $diff));
+					} elseif ($this->_haveFlag(self::FLAG_FILTER_STRUCTURE)) {
+						foreach ($diff as $unknown_key) {
+							unset($this->_actual_ar[$unknown_key]);
+						}
+					}
 				}
 			}
 

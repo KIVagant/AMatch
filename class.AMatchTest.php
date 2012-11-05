@@ -563,7 +563,7 @@
 		 */
 		public function testStrictStructure()
 		{
-			$result = AMatch::runMatch(AMatchTest::$actual_params, AMatch::FLAG_STRICT_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS)
+			$result = AMatch::runMatch(AMatchTest::$actual_params, AMatch::FLAG_DONT_STOP_MATCHING | AMatch::FLAG_STRICT_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS)
 			->subject_id(64, '>=')
 			->empty_key(AMatch::OPTIONAL, false)
 			->bad_key(AMatch::OPTIONAL)
@@ -581,7 +581,7 @@
 			$this->assertEquals($expected_ar, $result->matchResults());
 
 			$params = array('a' => 1, 'b' => null);
-			$result = AMatch::runMatch($params, AMatch::FLAG_STRICT_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS)
+			$result = AMatch::runMatch($params, AMatch::FLAG_DONT_STOP_MATCHING | AMatch::FLAG_STRICT_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS)
 			->a(true)
 			->b(false)
 			;
@@ -593,6 +593,59 @@
 			);
 			$this->assertTrue($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchResults());
+		}
+
+		/**
+		 * При установленном флаге фильтрации, ключи, не имеющие условий, будут автоматически удалены
+		 */
+		public function testFilterStructureWithGoodResult()
+		{
+			$result = AMatch::runMatch(AMatchTest::$actual_params, AMatch::FLAG_DONT_STOP_MATCHING | AMatch::FLAG_FILTER_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS)
+				->subject_id(64, '>=')
+				->empty_key(AMatch::OPTIONAL, false)
+				->bad_key(AMatch::OPTIONAL)
+				;
+			$expected_ar = array(
+				'subject_id' => AMatchStatus::KEY_CONDITION_VALID,
+				'empty_key' => AMatchStatus::KEY_CONDITION_VALID,
+				'bad_key' => AMatchStatus::KEY_NOT_EXISTS_OPTIONAL,
+			);
+			$new_actual_params_ar = array(
+				'subject_id' => '64',
+				'empty_key' => false,
+			);
+			$this->assertTrue($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchResults());
+			$this->assertEquals($new_actual_params_ar, AMatchTest::$actual_params);
+		}
+
+		/**
+		 * При установленном флаге фильтрации, ключи, не имеющие условий, будут автоматически удалены в т.ч. при плохом результате
+		 * Кроме того, при отсутствующем флаге DONT_STOP_MATCHING этот флаг не действует
+		 */
+		public function testFilterStructureWithBadResult()
+		{
+			// Не должен действовать
+			$result = AMatch::runMatch(AMatchTest::$actual_params, AMatch::FLAG_FILTER_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS)
+			->title('blabla')
+			;
+			$new_actual_params_ar = AMatchTest::$actual_params_orig;
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($new_actual_params_ar, AMatchTest::$actual_params);
+
+			// Должен действовать
+			$result = AMatch::runMatch(AMatchTest::$actual_params, AMatch::FLAG_DONT_STOP_MATCHING | AMatch::FLAG_FILTER_STRUCTURE | AMatch::FLAG_SHOW_GOOD_COMMENTS)
+			->title('blabla')
+			;
+			$expected_ar = array(
+			'title' => AMatchStatus::KEY_CONDITION_NOT_VALID,
+			);
+			$new_actual_params_ar = array(
+			'title' => AMatchTest::$actual_params_orig['title'],
+			);
+			$this->assertFalse($result->stopMatch());
+			$this->assertEquals($expected_ar, $result->matchResults());
+			$this->assertEquals($new_actual_params_ar, AMatchTest::$actual_params);
 		}
 
 		public function testCombineFlags()
