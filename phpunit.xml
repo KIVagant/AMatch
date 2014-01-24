@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit colors="true">
+	<testsuite name="AMatchTestSuite">
+		<file phpVersion="5.3.0" phpVersionOperator=">=">class.AMatchTest.php</file>
+	</testsuite>
+</phpunit>
