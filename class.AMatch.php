@@ -491,7 +491,7 @@
 				case 'smartbool':
 				case 'is_stringbool':
 				case 'is_smartbool':
-					$valid_bool = array('1', '0', 'true', 'false', true, false, 1, 0);
+					$valid_bool = array('1', '0', 'true', 'false', true, false, 1, 0, '');
 					$this->_typeMsg(in_array($actual, $valid_bool, true), $condition);
 					break;
 				case 'null':

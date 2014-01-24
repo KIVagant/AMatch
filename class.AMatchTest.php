@@ -40,6 +40,7 @@
 			'title' => 'Actual document',
 			'empty_key' => false,
 			'empty_key2' => 'false',
+			'empty_key3' => '',
 			'longlong' => '-1417234879143578612343412341252314123',
 			'data' => array(
 				'key1' => 'data1',
@@ -198,6 +199,7 @@
 				->empty_key(false, 'bool')
 				->empty_key(false, 'smartbool')
 				->empty_key2(false, 'smartbool')
+				->empty_key3(false, 'stringbool')
 				->longlong(false, 'longint')
 				;
 			$expected_ar = array(
@@ -208,6 +210,7 @@
 				'data' => AMatchStatus::KEY_TYPE_VALID,
 				'empty_key' => AMatchStatus::KEY_TYPE_VALID,
 				'empty_key2' => AMatchStatus::KEY_TYPE_VALID,
+				'empty_key3' => AMatchStatus::KEY_TYPE_VALID,
 				'longlong' => AMatchStatus::KEY_TYPE_VALID,
 			);
 			$this->assertTrue($result->stopMatch());
@@ -574,7 +577,7 @@
 			'empty_key' => AMatchStatus::KEY_CONDITION_VALID,
 			'bad_key' => AMatchStatus::KEY_NOT_EXISTS_OPTIONAL,
 			'stopMatch' => AMatchStatus::UNKNOWN_PARAMETERS_LIST,
-			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,parent_id,title,empty_key2,longlong,data',
+			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,parent_id,title,empty_key2,empty_key3,longlong,data',
 			);
 
 			$this->assertFalse($result->stopMatch());
@@ -672,7 +675,7 @@
 			'parent_id' => AMatchStatus::KEY_TYPE_NOT_VALID,
 			'something' => AMatchStatus::KEY_NOT_EXISTS_OPTIONAL,
 			'stopMatch' => AMatchStatus::UNKNOWN_PARAMETERS_LIST,
-			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,subject_id,title,empty_key2,longlong',
+			AMatch::_UNKNOWN_PARAMETERS_LIST => 'doc_id,subject_id,title,empty_key2,empty_key3,longlong',
 			);
 
 			$this->assertFalse($result->stopMatch());
