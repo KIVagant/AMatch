@@ -6,7 +6,10 @@
  * @see AMatch
  * @link http://habrahabr.ru/post/149114/
  */
-
+require_once(__DIR__ . '/../src/AMatch.php');
+require_once(__DIR__ . '/../src/AMatchStatus.php');
+require_once(__DIR__ . '/../src/AMatchString.php');
+require_once(__DIR__ . '/../src/AMatchArray.php');
 
 $params = array(
 	'doc_id' => 133,
@@ -24,6 +27,7 @@ $params_bad = array(
 	'doc_id' => -4,
 	'subject_id' => null,
 	'parent_id' => 30,
+	'author_name' => 'Admin',
 	'data' => array(
 		'flag' => 'booom',
 		'from_topic' => array(),
@@ -31,10 +35,10 @@ $params_bad = array(
 	),
 	'wtf_param' => 'exploit',
 );
-//$params = $params_bad;
+// Try good and bad structures
+// $params = $params_bad;
 
-require_once('../class.AMatch.php');
-require_once('../class.AMatchString.php');
+// AMatch with flags:
 
 define('DEBUG_MODE', true);
 $flags = AMatch::FLAG_DONT_STOP_MATCHING | AMatch::FLAG_STRICT_STRUCTURE;
@@ -44,7 +48,7 @@ if (DEBUG_MODE) {
 $match = AMatch::runMatch($params, $flags)
 	->doc_id(0, '<') // Левое значение меньше (ожидаемое меньше актуального)
 	->subject_id(0, '!=') // Не равен нулю
-	->subject_id('', '!float') // Не float
+	->subject_id('', '!array') // Не массив
 	->author_name(AMatch::OPTIONAL, 'string') // Необязательный или текст
 	->author_name('Guest') // Гость сайта
 	->parent_id(AMatch::OPTIONAL, 'int') // Необязательный или int
@@ -57,6 +61,11 @@ $match = AMatch::runMatch($params, $flags)
 	->data('experiment', 'in_array', 'My personal error text!') // Замена стандартной ошибки собственной на любом условии, кроме опциональных
 	->title() // существует
 	;
+
+	
+//
+// AMatch and callback function:
+//
 
 function checkDocumentData($data)
 {

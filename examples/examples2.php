@@ -6,6 +6,10 @@
  * @see AMatch
  * @link http://habrahabr.ru/post/150039/
  */
+require_once(__DIR__ . '/../src/AMatch.php');
+require_once(__DIR__ . '/../src/AMatchStatus.php');
+require_once(__DIR__ . '/../src/AMatchString.php');
+require_once(__DIR__ . '/../src/AMatchArray.php');
 
 $params = array(
 	'subject_id' => '64',
@@ -30,10 +34,6 @@ function result(AMatch $match)
 	echo PHP_EOL; var_export($match->matchComments());
 	echo PHP_EOL; var_export($match->matchCommentsConditions());
 }
-
-require_once('../class.AMatch.php');
-require_once('../class.AMatchString.php');
-require_once('../class.AMatchArray.php');
 
 //$flags = AMatch::FLAG_DONT_STOP_MATCHING | AMatch::FLAG_SHOW_GOOD_COMMENTS;//| AMatch::FLAG_STRICT_STRUCTURE
 
