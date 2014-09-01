@@ -1,6 +1,4 @@
 <?php
-	require_once 'class.AMatchStatus.php';
-
 	/**
 	 * Класс для проверки содержимого массивов
 	 *

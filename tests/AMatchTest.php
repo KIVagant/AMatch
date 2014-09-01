@@ -1,8 +1,8 @@
 <?php
-	require_once('class.AMatch.php');
-	require_once('class.AMatchStatus.php');
-	require_once('class.AMatchString.php');
-	require_once('class.AMatchArray.php');
+	require_once(__DIR__ . '/../src/AMatch.php');
+	require_once(__DIR__ . '/../src/AMatchStatus.php');
+	require_once(__DIR__ . '/../src/AMatchString.php');
+	require_once(__DIR__ . '/../src/AMatchArray.php');
 
 	/**
 	 * Пример собственного маппинга ошибок

@@ -1,0 +1,18 @@
+{
+    "name": "kivagant/amatch",
+    "description": "Validation and matching for associative arrays",
+	"type": "library",
+	"license": "MIT",
+    "authors": [
+        {
+            "name": "Евгений Глотов",
+            "email": "KIVagant@gmail.com"
+        }
+    ],
+	"autoload": {
+        "classmap": [
+            "src"
+        ]
+    },
+    "minimum-stability": "dev"
+}
