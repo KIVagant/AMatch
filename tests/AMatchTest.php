@@ -1,8 +1,14 @@
 <?php
-	require_once(__DIR__ . '/../src/AMatch.php');
-	require_once(__DIR__ . '/../src/AMatchStatus.php');
-	require_once(__DIR__ . '/../src/AMatchString.php');
-	require_once(__DIR__ . '/../src/AMatchArray.php');
+require_once(__DIR__ . '/../src/AMatch.php');
+require_once(__DIR__ . '/../src/AMatchStatus.php');
+require_once(__DIR__ . '/../src/AMatchString.php');
+require_once(__DIR__ . '/../src/AMatchArray.php');
+
+use KIVagant\AMatch\AMatch;
+use KIVagant\AMatch\AMatchArray;
+use KIVagant\AMatch\AMatchStatus;
+use KIVagant\AMatch\AMatchString;
+
 
 	/**
 	 * Пример собственного маппинга ошибок
@@ -413,14 +419,17 @@
 			$actual_obj = new AMatch($params);
 			$params_2 = array('my_obj' => $actual_obj);
 			$result = AMatch::runMatch($params_2, AMatch::FLAG_SHOW_GOOD_COMMENTS)
-				->my_obj('AMatch', 'instanceof');
+				->my_obj('AMatch', 'instanceof')
+				->my_obj('KIVagant\AMatch\AMatch', 'instanceof')
+				->my_obj('AMatchString', '!instanceof')
+				->my_obj('KIVagant\AMatch\AMatchString', '!instanceof');
 			$expected_ar = array(
 				'my_obj' => AMatchStatus::KEY_CONDITION_VALID,
 			);
 			$this->assertTrue($result->stopMatch());
 			$this->assertEquals($expected_ar, $result->matchResults());
 			//
-			$result = AMatch::runMatch(AMatchTest::$actual_params)->doc_id('AMatch', 'instanceof');
+			$result = AMatch::runMatch(AMatchTest::$actual_params)->doc_id('KIVagant\AMatch\AMatch', 'instanceof');
 			$expected_ar = array(
 				'doc_id' => AMatchStatus::KEY_CONDITION_NOT_VALID,
 			);
@@ -814,15 +823,18 @@
 		public static function _pluginsDataProvider()
 		{
 			return array(
-				array(self::$actual_params_orig, 'title', 'AMatchString->minLength', 15, true), // Можно вызывать через ->
+				array(self::$actual_params_orig, 'title', 'AMatchString->minLength', 15, true), // You can call with -> (object will be initialized onfly)
+				array(self::$actual_params_orig, 'title', 'KIVagant\AMatch\AMatchString->minLength', 15, true), // You can call with or without namspace
 				array(self::$actual_params_orig, 'title', 'AMatchString::maxLength', 15, true),
 				array(self::$actual_params_orig, 'title', 'AMatchString::length', 15, true),
+				array(self::$actual_params_orig, 'title', 'KIVagant\AMatch\AMatchString::length', 15, true),
 				array(self::$actual_params_orig, 'title', 'AMatchString::minLength', 16, false, array('title' => AMatchStatus::STRING_TOO_SHORT)),
 				array(self::$actual_params_orig, 'title', 'AMatchString::maxLength', 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
 				array(self::$actual_params_orig, 'title', 'AMatchString::length', 16, false, array('title' => AMatchStatus::STRING_TOO_SHORT)),
 				array(self::$actual_params_orig, 'title', 'AMatchString::length', 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
 				array(self::$actual_params_orig, 'title', array('AMatchString', 'length'), 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
-			
+				array(self::$actual_params_orig, 'title', array('KIVagant\AMatch\AMatchString', 'length'), 14, false, array('title' => AMatchStatus::STRING_TOO_LONG)),
+
 				//
 				array( array('classic' => array()), 'classic', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_CLASSIC, true),
 				array( array('first' => array()), 'first', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_FIRST_ELEMENT, true),
@@ -838,7 +850,7 @@
 				array( array('int' => '-12342451235345124351234124'), 'int', 'AMatchString::pregMatch', '/^-?\d+$/', true),
 
 				//
-				array( array('classic' => array(array())), 'classic', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_CLASSIC, false, array('classic' => AMatchStatus::EMPTY_ARRAY_CLASSIC)),
+				array( array('classic' => array(array())), 'classic', 'KIVagant\AMatch\AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_CLASSIC, false, array('classic' => AMatchStatus::EMPTY_ARRAY_CLASSIC)),
 				array( array('classic' => array('')), 'classic', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_CLASSIC, false, array('classic' => AMatchStatus::EMPTY_ARRAY_CLASSIC)),
 				array( array('first' => array(array(), array())), 'first', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_FIRST_ELEMENT, false, array('first' => AMatchStatus::EMPTY_ARRAY_FIRST_ELEMENT)),
 				array( array('first' => array(array(array(array(), array())))), 'first', 'AMatchArray::isEmpty', AMatchArray::FLAG_EMPTY_FIRST_ELEMENT, false, array('first' => AMatchStatus::EMPTY_ARRAY_FIRST_ELEMENT)),

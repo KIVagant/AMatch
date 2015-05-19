@@ -1,4 +1,6 @@
 <?php
+namespace KIVagant\AMatch;
+
 	/**
 	 * Класс для проверки содержимого массивов
 	 *
@@ -514,7 +516,8 @@
 					break;
 				case 'instance':
 				case 'instanceof':
-					$this->_conditionMsg(is_object($actual) && ($actual instanceof $expected));
+                    $namespaced =  __NAMESPACE__ . '\\' . $expected;
+					$this->_conditionMsg(is_object($actual) && ($actual instanceof $expected || $actual instanceof $namespaced));
 					break;
 				case 'subclass':
 				case 'subclass_of':
@@ -592,7 +595,11 @@
 					return false;
 				} else {
 					if (class_exists($callback[0])) {
-						$obj = new $callback[0];
+                        $obj = new $callback[0];
+                        $callable = array($obj, $callback[1]);
+                    } else if (class_exists(__NAMESPACE__ . '\\' . $callback[0])) {
+                        $class = __NAMESPACE__ . '\\' . $callback[0];
+						$obj = new $class;
 						$callable = array($obj, $callback[1]);
 					} else {
 						$this->_setFalseResult(AMatchStatus::CALLBACK_NOT_CALLABLE);
@@ -600,7 +607,11 @@
 						return false;
 					}
 				}
-			}
+			} elseif (is_string($callable) && strstr($callable, '::') !== false) {
+                if (!is_callable($callable)) {
+                    $callable = __NAMESPACE__ . '\\' . $callable;
+			    }
+            }
 
 			if (is_callable($callable)) {
 				$callback_result = call_user_func($callable, $actual, $this->_param_key, $additional_params);
@@ -671,8 +682,8 @@
 					is_string($condition)
 						&& (strstr($condition, '->') !== false || strstr($condition, '::') !== false)
 					|| is_array($condition) && is_callable($condition)
+                    || is_array($condition) && class_exists(__NAMESPACE__. '\\' . $condition[0]) && is_callable(__NAMESPACE__. '\\' . $condition[0] . '::' . $condition[1], true, $condition)
 				) {
-
 					// Пример вызова: ->some($callback_arguments, 'MyClass::myfunc')->some($callback_arguments, 'MyClass->myfunc')->some($callback_arguments, array($this, 'myFunc'))
 					$this->_callCallback($condition, $actual, $expected);
 				} else {

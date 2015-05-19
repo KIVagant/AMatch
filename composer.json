@@ -1,18 +1,22 @@
 {
-    "name": "kivagant/amatch",
-    "description": "Validation and matching for associative arrays",
-	"type": "library",
-	"license": "MIT",
-    "authors": [
-        {
-            "name": "Евгений Глотов",
-            "email": "KIVagant@gmail.com"
-        }
-    ],
-	"autoload": {
-        "classmap": [
-            "src"
-        ]
-    },
-    "minimum-stability": "dev"
+  "name": "kivagant/amatch",
+  "description": "Validation and matching for associative arrays",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Eugene Glotov",
+      "email": "KIVagant@gmail.com"
+    }
+  ],
+  "require": {
+    "php": "^5.6.0",
+    "ext-mbstring": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "KIVagant\\": "src/"
+    }
+  },
+  "minimum-stability": "dev"
 }

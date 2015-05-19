@@ -1,4 +1,6 @@
 <?php
+namespace KIVagant\AMatch;
+
 	/**
 	 * callback-методы для валидации строк
 	 *
@@ -88,7 +90,7 @@
 				$comments = AMatchStatus::ACTUAL_IS_NOT_STRING;
 			}
 			$comments_conditions = array($expected_length, __METHOD__);
-		
+
 			return array($result, $comments, $comments_conditions);
 		}
 
