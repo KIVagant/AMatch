@@ -12,6 +12,7 @@ See examples in folder 'examples'.
 
 This is short demo for usage:
 
+~~~PHP
 <?
 
 $params_bad = array(
